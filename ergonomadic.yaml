@@ -18,9 +18,6 @@ server:
             key: key.pem
             cert: cert.pem
 
-    # websocket listening port
-    wslisten: ":8080"
-
     # password to login to the server
     # generated using  "ergonomadic genpasswd"
     #password: ""

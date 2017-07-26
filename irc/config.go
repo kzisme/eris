@@ -31,7 +31,6 @@ type Config struct {
 		Database  string
 		Listen    []string
 		TLSListen map[string]*TLSConfig
-		Wslisten  string
 		Log       string
 		MOTD      string
 		Name      string
