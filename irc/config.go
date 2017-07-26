@@ -27,13 +27,13 @@ func (conf *PassConfig) PasswordBytes() []byte {
 
 type Config struct {
 	Server struct {
-		PassConfig
-		Database  string
-		Listen    []string
-		TLSListen map[string]*TLSConfig
-		Log       string
-		MOTD      string
-		Name      string
+		PassConfig `yaml:",inline"`
+		Database   string
+		Listen     []string
+		TLSListen  map[string]*TLSConfig
+		Log        string
+		MOTD       string
+		Name       string
 	}
 
 	Operator map[string]*PassConfig
