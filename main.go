@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"syscall"
 
 	"github.com/docopt/docopt-go"
@@ -57,6 +58,14 @@ Options:
 		irc.UpgradeDB(config.Server.Database)
 		log.Println("database upgraded: ", config.Server.Database)
 	} else if arguments["run"].(bool) {
+		// Create database if it isn't already created
+		if _, err := os.Stat(config.Server.Database); err != nil {
+			if os.IsNotExist(err) {
+				irc.InitDB(config.Server.Database)
+				log.Println("database initialized: ", config.Server.Database)
+			}
+		}
+
 		irc.Log.SetLevel(config.Server.Log)
 		server := irc.NewServer(config)
 		log.Println(irc.SEM_VER, "running")
