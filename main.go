@@ -22,7 +22,7 @@ Usage:
 	ircd -h | --help
 	ircd --version
 Options:
-	--conf <filename>  Configuration file to use [default: ircd.yaml].
+	--conf <filename>  Configuration file to use [default: ircd.yml].
 	-h --help          Show this screen.
 	--version          Show version.`
 
