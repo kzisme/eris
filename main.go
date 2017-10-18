@@ -7,20 +7,20 @@ import (
 	"syscall"
 
 	"github.com/docopt/docopt-go"
-	"github.com/edmund-huber/ergonomadic/irc"
+	"github.com/prologic/ircd/irc"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 func main() {
 	version := irc.SEM_VER
-	usage := `ergonomadic.
+	usage := `ircd.
 Usage:
-	ergonomadic initdb [--conf <filename>]
-	ergonomadic upgradedb [--conf <filename>]
-	ergonomadic genpasswd [--conf <filename>]
-	ergonomadic run [--conf <filename>]
-	ergonomadic -h | --help
-	ergonomadic --version
+	ircd initdb [--conf <filename>]
+	ircd upgradedb [--conf <filename>]
+	ircd genpasswd [--conf <filename>]
+	ircd run [--conf <filename>]
+	ircd -h | --help
+	ircd --version
 Options:
 	--conf <filename>  Configuration file to use [default: ircd.yaml].
 	-h --help          Show this screen.

@@ -1,12 +1,21 @@
-Ergonomadic (anagram of "go IRC daemon") is an IRC daemon written from scratch
-in Go. Pull requests and issues are welcome.
+# ircd - IRC Daemon
+
+> This project and repository is based off of [ergonomadic](https://github.com/edmund-huber/ergonomadic)
+> and much of my original contributions were made in my [fork of ergonomadic](https://github.com/prologic/ergonomadic)
+> but the upstream project was ultimately shutdown.
+> 
+> This repository intends to create a new history and improve upon prior work.
+
+----
+
+ircd is an IRC daemon written from scratch in Go.
+Pull requests and issues are welcome.
 
 Discussion at:
-* host/port: irc.skub.club:6697, use SSL
-* password: smellyoulater
-* #darwin
+* host/port: irc.mills.io:6697 (*use SSL*)
+* #lobby
 
-# Features
+## Features
 
 * follows the RFCs where possible
 * UTF-8 nick and channel names
@@ -20,44 +29,31 @@ Discussion at:
 * messages are queued in the same order to all connected clients
 * SSL/TLS support
 
-# What about federation?
+## Installation
 
-IRC federation solves a problem that was more likely to occur on the internet of
-1991 than today. We are exploring alternatives to federation that avoid nickname
-and channel sync issues created during netsplits.
-
-# Installation
-
-```sh
-go get
-go install
-cp ergonomadic.yaml ircd.yaml
-vim ircd.yaml  # modify the config file to your liking
-ergonomadic initdb
+```#!bash
+$ go install github.com/prologic/ircd
+$ ircd --help
 ```
 
-# Configuration
+## Configuration
 
-See the example [`ergonomadic.yaml`](ergonomadic.yaml). Passwords are base64-encoded bcrypted byte
-strings. You can generate them with the `genpasswd` subcommand.
+See the example [ircd.yml](ircd.yml). Passwords are base64-encoded
+bcrypted byte strings. You can generate them with the `genpasswd` subcommand.
 
-```sh
-ergonomadic genpasswd
+```#!bash
+$ ircd genpasswd
 ```
 
-# Running the server
+## Running the server
 
-```sh
-ergonomadic run
+```#!bash
+$ ircd run
 ```
 
-# Credits
+## Credits
 
 * Jeremy Latt, creator, <https://github.com/jlatt>
 * Edmund Huber, maintainer, <https://github.com/edmund-huber>
 * Niels Freier, added WebSocket support, <https://github.com/stumpyfr>
 * apologies to anyone I forgot.
-
-[go-crypto]: https://godoc.org/golang.org/x/crypto
-[go-sqlite]: https://github.com/mattn/go-sqlite3
-[proxy-proto]: http://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt

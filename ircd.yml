@@ -1,7 +1,6 @@
-# ergonomadic IRCd config
 server:
     # server name
-    name: ergonomadic.test
+    name: test.local
 
     # database filename (sqlite db)
     database: ircd.db
@@ -21,7 +20,7 @@ server:
             cert: cert.pem
 
     # password to login to the server
-    # generated using  "ergonomadic genpasswd"
+    # generated using  "ircd genpasswd"
     #password: ""
 
     # log level, one of error, warn, info, debug
@@ -32,8 +31,8 @@ server:
 
 # ircd operators
 operator:
-    # operator named 'dan'
-    dan:
+    # operator named 'prologic'
+    prologic:
         # password to login with /OPER command
-        # generated using  "ergonomadic genpasswd"
+        # generated using  "ircd genpasswd"
         password: JDJhJDA0JE1vZmwxZC9YTXBhZ3RWT2xBbkNwZnV3R2N6VFUwQUI0RUJRVXRBRHliZVVoa0VYMnlIaGsu

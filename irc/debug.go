@@ -36,7 +36,7 @@ func (msg *DebugCommand) HandleServer(server *Server) {
 		server.Replyf(client, "num goroutines: %d", count)
 
 	case "PROFILEHEAP":
-		profFile := "ergonomadic.mprof"
+		profFile := "ircd.mprof"
 		file, err := os.Create(profFile)
 		if err != nil {
 			server.Replyf(client, "error: %s", err)
@@ -47,7 +47,7 @@ func (msg *DebugCommand) HandleServer(server *Server) {
 		server.Replyf(client, "written to %s", profFile)
 
 	case "STARTCPUPROFILE":
-		profFile := "ergonomadic.prof"
+		profFile := "ircd.prof"
 		file, err := os.Create(profFile)
 		if err != nil {
 			server.Replyf(client, "error: %s", err)
