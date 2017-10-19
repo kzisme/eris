@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"syscall"
 
 	"github.com/docopt/docopt-go"
@@ -15,8 +14,6 @@ func main() {
 	version := irc.SEM_VER
 	usage := `ircd.
 Usage:
-	ircd initdb [--conf <filename>]
-	ircd upgradedb [--conf <filename>]
 	ircd genpasswd [--conf <filename>]
 	ircd run [--conf <filename>]
 	ircd -h | --help
@@ -51,21 +48,7 @@ Options:
 		log.Fatal("Config file did not load successfully:", err.Error())
 	}
 
-	if arguments["initdb"].(bool) {
-		irc.InitDB(config.Server.Database)
-		log.Println("database initialized: ", config.Server.Database)
-	} else if arguments["upgradedb"].(bool) {
-		irc.UpgradeDB(config.Server.Database)
-		log.Println("database upgraded: ", config.Server.Database)
-	} else if arguments["run"].(bool) {
-		// Create database if it isn't already created
-		if _, err := os.Stat(config.Server.Database); err != nil {
-			if os.IsNotExist(err) {
-				irc.InitDB(config.Server.Database)
-				log.Println("database initialized: ", config.Server.Database)
-			}
-		}
-
+	if arguments["run"].(bool) {
 		irc.Log.SetLevel(config.Server.Log)
 		server := irc.NewServer(config)
 		log.Println(irc.SEM_VER, "running")

@@ -1,7 +1,6 @@
 package irc
 
 import (
-	"log"
 	"strconv"
 )
 
@@ -159,7 +158,7 @@ func (channel *Channel) Join(client *Client, key Text) {
 
 	client.channels.Add(channel)
 	channel.members.Add(client)
-	if !channel.flags[Persistent] && (len(channel.members) == 1) {
+	if len(channel.members) == 1 {
 		channel.members[client][ChannelCreator] = true
 		channel.members[client][ChannelOperator] = true
 	}
@@ -216,10 +215,6 @@ func (channel *Channel) SetTopic(client *Client, topic Text) {
 	reply := RplTopicMsg(client, channel)
 	for member := range channel.members {
 		member.Reply(reply)
-	}
-
-	if err := channel.Persist(); err != nil {
-		log.Println("Channel.Persist:", channel, err)
 	}
 }
 
@@ -359,7 +354,7 @@ func (channel *Channel) applyMode(client *Client, change *ChannelModeChange) boo
 		return channel.applyModeMask(client, change.mode, change.op,
 			NewName(change.arg))
 
-	case InviteOnly, Moderated, NoOutside, OpOnlyTopic, Persistent, Private:
+	case InviteOnly, Moderated, NoOutside, OpOnlyTopic, Private:
 		return channel.applyModeFlag(client, change.mode, change.op)
 
 	case Key:
@@ -428,28 +423,7 @@ func (channel *Channel) Mode(client *Client, changes ChannelModeChanges) {
 		for member := range channel.members {
 			member.Reply(reply)
 		}
-
-		if err := channel.Persist(); err != nil {
-			log.Println("Channel.Persist:", channel, err)
-		}
 	}
-}
-
-func (channel *Channel) Persist() (err error) {
-	if channel.flags[Persistent] {
-		_, err = channel.server.db.Exec(`
-            INSERT OR REPLACE INTO channel
-              (name, flags, key, topic, user_limit, ban_list, except_list,
-               invite_list)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-			channel.name.String(), channel.flags.String(), channel.key.String(),
-			channel.topic.String(), channel.userLimit, channel.lists[BanMask].String(),
-			channel.lists[ExceptMask].String(), channel.lists[InviteMask].String())
-	} else {
-		_, err = channel.server.db.Exec(`
-            DELETE FROM channel WHERE name = ?`, channel.name.String())
-	}
-	return
 }
 
 func (channel *Channel) Notice(client *Client, message Text) {
@@ -470,7 +444,7 @@ func (channel *Channel) Quit(client *Client) {
 	channel.members.Remove(client)
 	client.channels.Remove(channel)
 
-	if !channel.flags[Persistent] && channel.IsEmpty() {
+	if channel.IsEmpty() {
 		channel.server.channels.Remove(channel)
 	}
 }
@@ -509,9 +483,6 @@ func (channel *Channel) Invite(invitee *Client, inviter *Client) {
 
 	if channel.flags[InviteOnly] {
 		channel.lists[InviteMask].Add(invitee.UserHost())
-		if err := channel.Persist(); err != nil {
-			log.Println("Channel.Persist:", channel, err)
-		}
 	}
 
 	inviter.RplInviting(invitee, channel.name)

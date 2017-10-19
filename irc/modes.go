@@ -78,7 +78,6 @@ const (
 	Moderated       ChannelMode = 'm' // flag
 	NoOutside       ChannelMode = 'n' // flag
 	OpOnlyTopic     ChannelMode = 't' // flag
-	Persistent      ChannelMode = 'P' // flag
 	Private         ChannelMode = 'p' // flag
 	Quiet           ChannelMode = 'q' // flag
 	ReOp            ChannelMode = 'r' // flag
@@ -91,7 +90,7 @@ const (
 var (
 	SupportedChannelModes = ChannelModes{
 		BanMask, ExceptMask, InviteMask, InviteOnly, Key, NoOutside,
-		OpOnlyTopic, Persistent, Private, Theater, UserLimit,
+		OpOnlyTopic, Private, Theater, UserLimit,
 	}
 )
 

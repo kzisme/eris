@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"crypto/rand"
 	"crypto/tls"
-	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -30,7 +29,6 @@ type Server struct {
 	clients   *ClientLookupSet
 	commands  chan Command
 	ctime     time.Time
-	db        *sql.DB
 	idle      chan *Client
 	motdFile  string
 	name      Name
@@ -53,7 +51,6 @@ func NewServer(config *Config) *Server {
 		clients:   NewClientLookupSet(),
 		commands:  make(chan Command),
 		ctime:     time.Now(),
-		db:        OpenDB(config.Server.Database),
 		idle:      make(chan *Client),
 		motdFile:  config.Server.MOTD,
 		name:      NewName(config.Server.Name),
@@ -67,8 +64,6 @@ func NewServer(config *Config) *Server {
 	if config.Server.Password != "" {
 		server.password = config.Server.PasswordBytes()
 	}
-
-	server.loadChannels()
 
 	for _, addr := range config.Server.Listen {
 		server.listen(addr)
@@ -88,38 +83,6 @@ func loadChannelList(channel *Channel, list string, maskMode ChannelMode) {
 		return
 	}
 	channel.lists[maskMode].AddAll(NewNames(strings.Split(list, " ")))
-}
-
-func (server *Server) loadChannels() {
-	rows, err := server.db.Query(`
-        SELECT name, flags, key, topic, user_limit, ban_list, except_list,
-               invite_list
-          FROM channel`)
-	if err != nil {
-		log.Fatal("error loading channels: ", err)
-	}
-	for rows.Next() {
-		var name, flags, key, topic string
-		var userLimit uint64
-		var banList, exceptList, inviteList string
-		err = rows.Scan(&name, &flags, &key, &topic, &userLimit, &banList,
-			&exceptList, &inviteList)
-		if err != nil {
-			log.Println("Server.loadChannels:", err)
-			continue
-		}
-
-		channel := NewChannel(server, NewName(name))
-		for _, flag := range flags {
-			channel.flags[ChannelMode(flag)] = true
-		}
-		channel.key = NewText(key)
-		channel.topic = NewText(topic)
-		channel.userLimit = userLimit
-		loadChannelList(channel, banList, BanMask)
-		loadChannelList(channel, exceptList, ExceptMask)
-		loadChannelList(channel, inviteList, InviteMask)
-	}
 }
 
 func (server *Server) processCommand(cmd Command) {
@@ -157,7 +120,6 @@ func (server *Server) processCommand(cmd Command) {
 }
 
 func (server *Server) Shutdown() {
-	server.db.Close()
 	for _, client := range server.clients.byNick {
 		client.Reply(RplNotice(server, client, "shutting down"))
 	}
