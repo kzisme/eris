@@ -1,6 +1,6 @@
 server:
     # server name
-    name: test.local
+    name: irc.mills.io
 
     # database filename (sqlite db)
     database: ircd.db
@@ -10,8 +10,6 @@ server:
     #   - ":6667"
     #   - "127.0.0.1:6668"
     #   - "[::1]:6668"
-    listen:
-        - ":6667"
 
     # addresses to listen on for TLS
     tlslisten:
