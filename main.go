@@ -11,17 +11,17 @@ import (
 )
 
 func main() {
-	version := irc.SEM_VER
+	version := irc.FullVersion()
 	usage := `ircd.
 Usage:
 	ircd genpasswd [--conf <filename>]
 	ircd run [--conf <filename>]
 	ircd -h | --help
-	ircd --version
+	ircd -v | --version
 Options:
-	--conf <filename>  Configuration file to use [default: ircd.yml].
+	-c --conf <filename>  Configuration file to use [default: ircd.yml].
 	-h --help          Show this screen.
-	--version          Show version.`
+	-v --version          Show version.`
 
 	arguments, _ := docopt.Parse(usage, nil, true, version, false)
 
@@ -51,8 +51,8 @@ Options:
 	if arguments["run"].(bool) {
 		irc.Log.SetLevel(config.Server.Log)
 		server := irc.NewServer(config)
-		log.Println(irc.SEM_VER, "running")
-		defer log.Println(irc.SEM_VER, "exiting")
+		log.Println(irc.FullVersion(), "running")
+		defer log.Println(irc.FullVersion(), "exiting")
 		server.Run()
 	}
 }

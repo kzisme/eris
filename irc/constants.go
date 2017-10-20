@@ -1,7 +1,6 @@
 package irc
 
 const (
-	SEM_VER       = "ircd-1.5.1"
 	CRLF          = "\r\n"
 	MAX_REPLY_LEN = 512 - len(CRLF)
 
