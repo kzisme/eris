@@ -2,9 +2,6 @@ server:
     # server name
     name: irc.mills.io
 
-    # database filename (sqlite db)
-    database: ircd.db
-
     # addresses to listen on
     # listen:
     #   - ":6667"
