@@ -15,7 +15,7 @@ COPY . /go/src/github.com/$REPO
 RUN make TAG=$TAG BUILD=$BUILD build
 
 # Runtime
-FROM scratch
+FROM alpine
 
 ENV APP ircd
 ENV REPO prologic/$APP
