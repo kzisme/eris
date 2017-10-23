@@ -37,7 +37,6 @@ type Server struct {
 	password  []byte
 	signals   chan os.Signal
 	whoWas    *WhoWasList
-	theaters  map[Name][]byte
 }
 
 var (
@@ -58,7 +57,6 @@ func NewServer(config *Config) *Server {
 		operators: config.Operators(),
 		signals:   make(chan os.Signal, len(SERVER_SIGNALS)),
 		whoWas:    NewWhoWasList(100),
-		theaters:  config.Theaters(),
 	}
 
 	if config.Server.Password != "" {
@@ -272,10 +270,6 @@ func (msg *PassCommand) HandleRegServer(server *Server) {
 	}
 
 	client.authorized = true
-}
-
-func (msg *ProxyCommand) HandleRegServer(server *Server) {
-	msg.Client().hostname = msg.hostname
 }
 
 func (msg *RFC1459UserCommand) HandleRegServer(server *Server) {

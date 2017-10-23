@@ -28,7 +28,7 @@ Options:
 	// Special case -- We do not need to load the config file here
 	if arguments["genpasswd"].(bool) {
 		fmt.Print("Enter Password: ")
-		bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
+		bytePassword, err := terminal.ReadPassword(syscall.Stdin)
 		if err != nil {
 			log.Fatal("Error reading password:", err.Error())
 		}

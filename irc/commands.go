@@ -28,7 +28,6 @@ var (
 	parseCommandFuncs  = map[StringCode]parseCommandFunc{
 		AWAY:    ParseAwayCommand,
 		CAP:     ParseCapCommand,
-		DEBUG:   ParseDebugCommand,
 		INVITE:  ParseInviteCommand,
 		ISON:    ParseIsOnCommand,
 		JOIN:    ParseJoinCommand,
@@ -47,7 +46,6 @@ var (
 		PING:    ParsePingCommand,
 		PONG:    ParsePongCommand,
 		PRIVMSG: ParsePrivMsgCommand,
-		PROXY:   ParseProxyCommand,
 		QUIT:    ParseQuitCommand,
 		TIME:    ParseTimeCommand,
 		TOPIC:   ParseTopicCommand,
@@ -666,39 +664,6 @@ func ParseCapCommand(args []string) (Command, error) {
 		}
 	}
 	return cmd, nil
-}
-
-// HAPROXY support
-type ProxyCommand struct {
-	BaseCommand
-	net        Name
-	sourceIP   Name
-	destIP     Name
-	sourcePort Name
-	destPort   Name
-	hostname   Name // looked up in socket thread
-}
-
-func NewProxyCommand(hostname Name) *ProxyCommand {
-	cmd := &ProxyCommand{
-		hostname: hostname,
-	}
-	cmd.code = PROXY
-	return cmd
-}
-
-func ParseProxyCommand(args []string) (Command, error) {
-	if len(args) < 5 {
-		return nil, NotEnoughArgsError
-	}
-	return &ProxyCommand{
-		net:        NewName(args[0]),
-		sourceIP:   NewName(args[1]),
-		destIP:     NewName(args[2]),
-		sourcePort: NewName(args[3]),
-		destPort:   NewName(args[4]),
-		hostname:   LookupHostname(NewName(args[1])),
-	}, nil
 }
 
 type AwayCommand struct {

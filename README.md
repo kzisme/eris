@@ -23,7 +23,6 @@ Discussion at:
 * server password (PASS command)
 * channels with most standard modes
 * IRC operators (OPER command)
-* haproxy [PROXY protocol][proxy-proto] header for hostname setting
 * passwords stored in [bcrypt][go-crypto] format
 * messages are queued in the same order to all connected clients
 * SSL/TLS support

@@ -61,10 +61,8 @@ func (client *Client) run() {
 	var err error
 	var line string
 
-	// Set the hostname for this client. The client may later send a PROXY
-	// command from stunnel that sets the hostname to something more accurate.
-	client.send(NewProxyCommand(AddrLookupHostname(
-		client.socket.conn.RemoteAddr())))
+	// Set the hostname for this client.
+	client.hostname = AddrLookupHostname(client.socket.conn.RemoteAddr())
 
 	for err == nil {
 		if line, err = client.socket.Read(); err != nil {

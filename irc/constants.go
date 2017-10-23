@@ -27,9 +27,7 @@ const (
 	PING    StringCode = "PING"
 	PONG    StringCode = "PONG"
 	PRIVMSG StringCode = "PRIVMSG"
-	PROXY   StringCode = "PROXY"
 	QUIT    StringCode = "QUIT"
-	THEATER StringCode = "THEATER" // nonstandard
 	TIME    StringCode = "TIME"
 	TOPIC   StringCode = "TOPIC"
 	USER    StringCode = "USER"
