@@ -510,19 +510,6 @@ func (msg *AwayCommand) HandleServer(server *Server) {
 		delete(client.flags, Away)
 	}
 	client.awayMessage = msg.text
-
-	var op ModeOp
-	if client.flags[Away] {
-		op = Add
-		client.RplNowAway()
-	} else {
-		op = Remove
-		client.RplUnAway()
-	}
-	client.Reply(RplModeChanges(client, client, ModeChanges{&ModeChange{
-		mode: Away,
-		op:   op,
-	}}))
 }
 
 func (msg *IsOnCommand) HandleServer(server *Server) {

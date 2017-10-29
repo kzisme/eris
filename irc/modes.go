@@ -51,7 +51,7 @@ const (
 )
 
 const (
-	Away          UserMode = 'a'
+	Away          UserMode = 'a' // not a readl user mode (flag)
 	Invisible     UserMode = 'i'
 	LocalOperator UserMode = 'O'
 	Operator      UserMode = 'o'
@@ -62,7 +62,7 @@ const (
 
 var (
 	SupportedUserModes = UserModes{
-		Away, Invisible, Operator,
+		Invisible, Operator,
 	}
 )
 
