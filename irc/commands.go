@@ -797,21 +797,6 @@ func ParseNamesCommand(args []string) (Command, error) {
 	return cmd, nil
 }
 
-type DebugCommand struct {
-	BaseCommand
-	subCommand Name
-}
-
-func ParseDebugCommand(args []string) (Command, error) {
-	if len(args) == 0 {
-		return nil, NotEnoughArgsError
-	}
-
-	return &DebugCommand{
-		subCommand: NewName(strings.ToUpper(args[0])),
-	}, nil
-}
-
 type VersionCommand struct {
 	BaseCommand
 	target Name
