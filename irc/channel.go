@@ -133,24 +133,27 @@ func (channel *Channel) Join(client *Client, key Text) {
 		return
 	}
 
-	if channel.IsFull() {
+	isOperator := channel.ClientIsOperator(client)
+
+	if !isOperator && channel.IsFull() {
 		client.ErrChannelIsFull(channel)
 		return
 	}
 
-	if !channel.CheckKey(key) {
+	if !isOperator && !channel.CheckKey(key) {
 		client.ErrBadChannelKey(channel)
 		return
 	}
 
 	isInvited := channel.lists[InviteMask].Match(client.UserHost())
-	if channel.flags[InviteOnly] && !isInvited {
+	if !isOperator && channel.flags[InviteOnly] && !isInvited {
 		client.ErrInviteOnlyChan(channel)
 		return
 	}
 
 	if channel.lists[BanMask].Match(client.UserHost()) &&
 		!isInvited &&
+		!isOperator &&
 		!channel.lists[ExceptMask].Match(client.UserHost()) {
 		client.ErrBannedFromChan(channel)
 		return
@@ -185,7 +188,7 @@ func (channel *Channel) Part(client *Client, message Text) {
 }
 
 func (channel *Channel) GetTopic(client *Client) {
-	if !channel.members.Has(client) {
+	if !(channel.ClientIsOperator(client) || channel.members.Has(client)) {
 		client.ErrNotOnChannel(channel)
 		return
 	}
@@ -200,7 +203,7 @@ func (channel *Channel) GetTopic(client *Client) {
 }
 
 func (channel *Channel) SetTopic(client *Client, topic Text) {
-	if !(client.flags[Operator] || channel.members.Has(client)) {
+	if !(channel.ClientIsOperator(client) || channel.members.Has(client)) {
 		client.ErrNotOnChannel(channel)
 		return
 	}
@@ -219,7 +222,7 @@ func (channel *Channel) SetTopic(client *Client, topic Text) {
 }
 
 func (channel *Channel) CanSpeak(client *Client) bool {
-	if client.flags[Operator] {
+	if channel.ClientIsOperator(client) {
 		return true
 	}
 	if channel.flags[NoOutside] && !channel.members.Has(client) {
@@ -450,7 +453,7 @@ func (channel *Channel) Quit(client *Client) {
 }
 
 func (channel *Channel) Kick(client *Client, target *Client, comment Text) {
-	if !(client.flags[Operator] || channel.members.Has(client)) {
+	if !(channel.ClientIsOperator(client) || channel.members.Has(client)) {
 		client.ErrNotOnChannel(channel)
 		return
 	}
@@ -476,7 +479,7 @@ func (channel *Channel) Invite(invitee *Client, inviter *Client) {
 		return
 	}
 
-	if !channel.members.Has(inviter) {
+	if !channel.members.Has(inviter) && !channel.ClientIsOperator(inviter) {
 		inviter.ErrNotOnChannel(channel)
 		return
 	}
