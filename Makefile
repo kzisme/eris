@@ -3,6 +3,7 @@
 CGO_ENABLED=0
 COMMIT=`git rev-parse --short HEAD`
 APP=ircd
+PACKAGE=irc
 REPO?=prologic/$(APP)
 TAG?=latest
 BUILD?=-dev
@@ -18,7 +19,7 @@ deps:
 build: clean deps
 	@echo " -> Building $(TAG)$(BUILD)"
 	@go build -tags "netgo static_build" -installsuffix netgo \
-		-ldflags "-w -X github.com/$(REPO)/$(APP).GitCommit=$(COMMIT) -X github.com/$(REPO)/$(APP).Build=$(BUILD)" .
+		-ldflags "-w -X github.com/$(REPO)/${PACKAGE}.GitCommit=$(COMMIT) -X github.com/$(REPO)/${PACKAGE}.Build=$(BUILD)" .
 	@echo "Built $$(./$(APP) -v)"
 
 image:
