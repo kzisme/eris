@@ -120,6 +120,18 @@ func (server *Server) processCommand(cmd Command) {
 	srvCmd.HandleServer(server)
 }
 
+func (server *Server) Wallops(message string) {
+	for _, client := range server.clients.byNick {
+		if client.flags[WallOps] {
+			client.Reply(RplNotice(server, client, NewText(message)))
+		}
+	}
+}
+
+func (server *Server) Wallopsf(format string, args ...interface{}) {
+	server.Wallops(fmt.Sprintf(format, args...))
+}
+
 func (server *Server) Shutdown() {
 	for _, client := range server.clients.byNick {
 		client.Reply(RplNotice(server, client, "shutting down"))
