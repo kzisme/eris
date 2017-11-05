@@ -26,6 +26,8 @@ Discussion at:
 * passwords stored in [bcrypt][go-crypto] format
 * messages are queued in the same order to all connected clients
 * SSL/TLS support
+* Simple IRC operator privileges (*overrides most things*)
+* Secure connection tracking (+z) and SecureOnly user mode (+Z)
 
 ## Installation
 
