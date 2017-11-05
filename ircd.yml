@@ -1,6 +1,6 @@
 server:
     # server name
-    name: localhost
+    name: localhost.localdomain
 
     # addresses to listen on
     listen:

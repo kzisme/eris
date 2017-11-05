@@ -356,7 +356,7 @@ func (m *JoinCommand) HandleServer(s *Server) {
 
 		channel := s.channels.Get(name)
 		if channel == nil {
-			channel = NewChannel(s, name)
+			channel = NewChannel(s, name, true)
 		}
 		channel.Join(client, key)
 	}

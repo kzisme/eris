@@ -66,6 +66,9 @@ var (
 	SupportedUserModes = UserModes{
 		Invisible, Operator,
 	}
+	DefaultChannelModes = ChannelModes{
+		NoOutside, OpOnlyTopic,
+	}
 )
 
 const (
