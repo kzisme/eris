@@ -25,18 +25,19 @@ type RegServerCommand interface {
 }
 
 type Server struct {
-	channels  ChannelNameMap
-	clients   *ClientLookupSet
-	commands  chan Command
-	ctime     time.Time
-	idle      chan *Client
-	motdFile  string
-	name      Name
-	newConns  chan net.Conn
-	operators map[Name][]byte
-	password  []byte
-	signals   chan os.Signal
-	whoWas    *WhoWasList
+	channels    ChannelNameMap
+	clients     *ClientLookupSet
+	commands    chan Command
+	ctime       time.Time
+	idle        chan *Client
+	motdFile    string
+	name        Name
+	description string
+	newConns    chan net.Conn
+	operators   map[Name][]byte
+	password    []byte
+	signals     chan os.Signal
+	whoWas      *WhoWasList
 }
 
 var (
@@ -46,17 +47,18 @@ var (
 
 func NewServer(config *Config) *Server {
 	server := &Server{
-		channels:  make(ChannelNameMap),
-		clients:   NewClientLookupSet(),
-		commands:  make(chan Command),
-		ctime:     time.Now(),
-		idle:      make(chan *Client),
-		motdFile:  config.Server.MOTD,
-		name:      NewName(config.Server.Name),
-		newConns:  make(chan net.Conn),
-		operators: config.Operators(),
-		signals:   make(chan os.Signal, len(SERVER_SIGNALS)),
-		whoWas:    NewWhoWasList(100),
+		channels:    make(ChannelNameMap),
+		clients:     NewClientLookupSet(),
+		commands:    make(chan Command),
+		ctime:       time.Now(),
+		idle:        make(chan *Client),
+		motdFile:    config.Server.MOTD,
+		name:        NewName(config.Server.Name),
+		description: config.Server.Description,
+		newConns:    make(chan net.Conn),
+		operators:   config.Operators(),
+		signals:     make(chan os.Signal, len(SERVER_SIGNALS)),
+		whoWas:      NewWhoWasList(100),
 	}
 
 	if config.Server.Password != "" {

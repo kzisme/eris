@@ -233,6 +233,14 @@ func (c *Client) UserHost() Name {
 	return Name(fmt.Sprintf("%s!%s@%s", c.Nick(), username, c.hostname))
 }
 
+func (c *Client) Server() Name {
+	return c.server.name
+}
+
+func (c *Client) ServerInfo() string {
+	return c.server.description
+}
+
 func (c *Client) Nick() Name {
 	if c.HasNick() {
 		return c.nick

@@ -245,6 +245,7 @@ func (target *Client) RplWhois(client *Client) {
 	if client.flags[SecureConn] {
 		target.RplWhoisSecure(client)
 	}
+	target.RplWhoisServer(client)
 	target.RplEndOfWhois()
 }
 
@@ -271,6 +272,16 @@ func (target *Client) RplWhoisIdle(client *Client) {
 	target.NumericReply(RPL_WHOISIDLE,
 		"%s %d %d :seconds idle, signon time",
 		client.Nick(), client.IdleSeconds(), client.SignonTime())
+}
+
+func (target *Client) RplWhoisServer(client *Client) {
+	target.NumericReply(
+		RPL_WHOISSERVER,
+		"%s %s :%s",
+		client.Nick(),
+		client.Server(),
+		client.ServerInfo(),
+	)
 }
 
 func (target *Client) RplEndOfWhois() {
