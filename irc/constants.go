@@ -22,6 +22,7 @@ const (
 	NOTICE  StringCode = "NOTICE"
 	ONICK   StringCode = "ONICK"
 	OPER    StringCode = "OPER"
+	REHASH  StringCode = "REHASH"
 	PART    StringCode = "PART"
 	PASS    StringCode = "PASS"
 	PING    StringCode = "PING"

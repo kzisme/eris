@@ -234,6 +234,15 @@ func (target *Client) RplYoureOper() {
 		":You are now an IRC operator")
 }
 
+// <config file> :Rehashing
+func (target *Client) RplRehashing() {
+	target.NumericReply(
+		RPL_REHASHING,
+		"%s :Rehashing",
+		target.server.config.Name(),
+	)
+}
+
 func (target *Client) RplWhois(client *Client) {
 	target.RplWhoisUser(client)
 	if client.flags[Operator] {

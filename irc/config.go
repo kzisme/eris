@@ -4,7 +4,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"sync"
 
+	"github.com/imdario/mergo"
 	"gopkg.in/yaml.v2"
 )
 
@@ -26,6 +28,9 @@ func (conf *PassConfig) PasswordBytes() []byte {
 }
 
 type Config struct {
+	sync.Mutex
+	filename string
+
 	Server struct {
 		PassConfig  `yaml:",inline"`
 		Database    string
@@ -48,6 +53,27 @@ func (conf *Config) Operators() map[Name][]byte {
 	return operators
 }
 
+func (conf *Config) Name() string {
+	return conf.filename
+}
+
+func (conf *Config) Reload() error {
+	conf.Lock()
+	defer conf.Unlock()
+
+	newconf, err := LoadConfig(conf.filename)
+	if err != nil {
+		return nil
+	}
+
+	err = mergo.MergeWithOverwrite(conf, newconf)
+	if err != nil {
+		return nil
+	}
+
+	return nil
+}
+
 func LoadConfig(filename string) (config *Config, err error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -59,14 +85,19 @@ func LoadConfig(filename string) (config *Config, err error) {
 		return nil, err
 	}
 
+	config.filename = filename
+
 	if config.Server.Name == "" {
 		return nil, errors.New("Server name missing")
 	}
+
 	if !IsHostname(config.Server.Name) {
 		return nil, errors.New("Server name must match the format of a hostname")
 	}
+
 	if len(config.Server.Listen)+len(config.Server.TLSListen) == 0 {
 		return nil, errors.New("Server listening addresses missing")
 	}
+
 	return config, nil
 }

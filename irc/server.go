@@ -26,6 +26,7 @@ type RegServerCommand interface {
 }
 
 type Server struct {
+	config      *Config
 	channels    ChannelNameMap
 	clients     *ClientLookupSet
 	commands    chan Command
@@ -48,6 +49,7 @@ var (
 
 func NewServer(config *Config) *Server {
 	server := &Server{
+		config:      config,
 		channels:    make(ChannelNameMap),
 		clients:     NewClientLookupSet(),
 		commands:    make(chan Command),
@@ -250,6 +252,20 @@ func (server *Server) MOTD(client *Client) {
 		client.RplMOTD(line)
 	}
 	client.RplMOTDEnd()
+}
+
+func (s *Server) Rehash() error {
+	err := s.config.Reload()
+	if err != nil {
+		return err
+	}
+
+	s.motdFile = s.config.Server.MOTD
+	s.name = NewName(s.config.Server.Name)
+	s.description = s.config.Server.Description
+	s.operators = s.config.Operators()
+
+	return nil
 }
 
 func (s *Server) Id() Name {
@@ -516,6 +532,30 @@ func (msg *OperCommand) HandleServer(server *Server) {
 		mode: Operator,
 		op:   Add,
 	}}))
+}
+
+func (msg *RehashCommand) HandleServer(server *Server) {
+	client := msg.Client()
+	if !client.flags[Operator] {
+		client.ErrNoPrivileges()
+		return
+	}
+
+	server.Wallopsf(
+		"Rehashing server config (%s)",
+		client.Nick(),
+	)
+
+	err := server.Rehash()
+	if err != nil {
+		server.Wallopsf(
+			"ERROR: Rehashing config failed (%s)",
+			err,
+		)
+		return
+	}
+
+	client.RplRehashing()
 }
 
 func (msg *AwayCommand) HandleServer(server *Server) {

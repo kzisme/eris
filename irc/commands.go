@@ -41,6 +41,7 @@ var (
 		NOTICE:  ParseNoticeCommand,
 		ONICK:   ParseOperNickCommand,
 		OPER:    ParseOperCommand,
+		REHASH:  ParseRehashCommand,
 		PART:    ParsePartCommand,
 		PASS:    ParsePassCommand,
 		PING:    ParsePingCommand,
@@ -639,6 +640,15 @@ func ParseOperCommand(args []string) (Command, error) {
 	}
 	cmd.password = []byte(args[1])
 	return cmd, nil
+}
+
+type RehashCommand struct {
+	BaseCommand
+}
+
+// REHASH
+func ParseRehashCommand(args []string) (Command, error) {
+	return &RehashCommand{}, nil
 }
 
 type CapCommand struct {
