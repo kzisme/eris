@@ -205,6 +205,14 @@ func (client *Client) HasUsername() bool {
 	return client.username != ""
 }
 
+func (client *Client) CanSpeak(target *Client) bool {
+	requiresSecure := client.flags[SecureOnly] || target.flags[SecureOnly]
+	isSecure := client.flags[SecureConn] && target.flags[SecureConn]
+	isOperator := client.flags[Operator]
+
+	return requiresSecure && (isOperator || isSecure)
+}
+
 // <mode>
 func (c *Client) ModeString() (str string) {
 	for flag := range c.flags {

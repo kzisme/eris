@@ -412,7 +412,7 @@ func (msg *PrivMsgCommand) HandleServer(server *Server) {
 		client.ErrNoSuchNick(msg.target)
 		return
 	}
-	if !client.flags[Operator] && !client.flags[SecureConn] && target.flags[SecureOnly] {
+	if !client.CanSpeak(target) {
 		client.ErrCannotSendToUser(target.nick, "secure connection required")
 		return
 	}
@@ -551,7 +551,8 @@ func (msg *NoticeCommand) HandleServer(server *Server) {
 		client.ErrNoSuchNick(msg.target)
 		return
 	}
-	if !client.flags[Operator] && !client.flags[SecureConn] && target.flags[SecureOnly] {
+
+	if !client.CanSpeak(target) {
 		client.ErrCannotSendToUser(target.nick, "secure connection required")
 		return
 	}
