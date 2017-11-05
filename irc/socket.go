@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"io"
 	"net"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -36,7 +38,7 @@ func (socket *Socket) Close() {
 	}
 	socket.closed = true
 	socket.conn.Close()
-	Log.debug.Printf("%s closed", socket)
+	log.Debugf("%s closed", socket)
 }
 
 func (socket *Socket) Read() (line string, err error) {
@@ -50,7 +52,7 @@ func (socket *Socket) Read() (line string, err error) {
 		if len(line) == 0 {
 			continue
 		}
-		Log.debug.Printf("%s → %s", socket, line)
+		log.Debugf("%s → %s", socket, line)
 		return
 	}
 
@@ -80,14 +82,14 @@ func (socket *Socket) Write(line string) (err error) {
 		return
 	}
 
-	Log.debug.Printf("%s ← %s", socket, line)
+	log.Debugf("%s ← %s", socket, line)
 	return
 }
 
 func (socket *Socket) isError(err error, dir rune) bool {
 	if err != nil {
 		if err != io.EOF {
-			Log.debug.Printf("%s %c error: %s", socket, dir, err)
+			log.Debugf("%s %c error: %s", socket, dir, err)
 		}
 		return true
 	}

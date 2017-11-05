@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -182,7 +184,7 @@ func (client *Client) destroy() {
 
 	client.socket.Close()
 
-	Log.debug.Printf("%s: destroyed", client)
+	log.Debugf("%s: destroyed", client)
 }
 
 func (client *Client) IdleTime() time.Duration {
@@ -269,7 +271,7 @@ func (client *Client) Friends() ClientSet {
 
 func (client *Client) SetNickname(nickname Name) {
 	if client.HasNick() {
-		Log.error.Printf("%s nickname already set!", client)
+		log.Errorf("%s nickname already set!", client)
 		return
 	}
 	client.nick = nickname

@@ -5,13 +5,14 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type ServerCommand interface {
@@ -149,10 +150,10 @@ func (s *Server) acceptor(listener net.Listener) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			Log.error.Printf("%s accept error: %s", s, err)
+			log.Errorf("%s accept error: %s", s, err)
 			continue
 		}
-		Log.debug.Printf("%s accept: %s", s, conn.RemoteAddr())
+		log.Debugf("%s accept: %s", s, conn.RemoteAddr())
 
 		s.newConns <- conn
 	}
@@ -168,7 +169,7 @@ func (s *Server) listen(addr string) {
 		log.Fatal(s, "listen error: ", err)
 	}
 
-	Log.info.Printf("%s listening on %s", s, addr)
+	log.Infof("%s listening on %s", s, addr)
 
 	go s.acceptor(listener)
 }
@@ -189,7 +190,7 @@ func (s *Server) listentls(addr string, tlsconfig *TLSConfig) {
 		log.Fatalf("error binding to %s: %s", addr, err)
 	}
 
-	Log.info.Printf("%s listening on %s", s, addr)
+	log.Infof("%s listening on %s (TLS)", s, addr)
 
 	go s.acceptor(listener)
 }

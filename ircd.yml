@@ -2,9 +2,6 @@ server:
     # server name
     name: localhost.localdomain
 
-    # server description
-    description: Local
-
     # addresses to listen on
     listen:
         - ":6667"

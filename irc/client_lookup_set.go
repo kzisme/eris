@@ -3,9 +3,10 @@ package irc
 import (
 	"database/sql"
 	"errors"
-	"log"
 	"regexp"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -88,20 +89,20 @@ func (clients *ClientLookupSet) FindAll(userhost Name) (set ClientSet) {
 		`SELECT nickname FROM client WHERE userhost LIKE ? ESCAPE '\'`,
 		QuoteLike(userhost))
 	if err != nil {
-		Log.error.Println("ClientLookupSet.FindAll.Query:", err)
+		log.Errorf("ClientLookupSet.FindAll.Query:", err)
 		return
 	}
 	for rows.Next() {
 		var sqlNickname string
 		err := rows.Scan(&sqlNickname)
 		if err != nil {
-			Log.error.Println("ClientLookupSet.FindAll.Scan:", err)
+			log.Errorf("ClientLookupSet.FindAll.Scan:", err)
 			return
 		}
 		nickname := Name(sqlNickname)
 		client := clients.Get(nickname)
 		if client == nil {
-			Log.error.Println("ClientLookupSet.FindAll: missing client:", nickname)
+			log.Errorf("ClientLookupSet.FindAll: missing client:", nickname)
 			continue
 		}
 		set.Add(client)
@@ -117,7 +118,7 @@ func (clients *ClientLookupSet) Find(userhost Name) *Client {
 	var nickname Name
 	err := row.Scan(&nickname)
 	if err != nil {
-		Log.error.Println("ClientLookupSet.Find:", err)
+		log.Errorf("ClientLookupSet.Find:", err)
 		return nil
 	}
 	return clients.Get(nickname)
@@ -156,7 +157,7 @@ func (db *ClientDB) Add(client *Client) {
 	_, err := db.db.Exec(`INSERT INTO client (nickname, userhost) VALUES (?, ?)`,
 		client.Nick().String(), client.UserHost().String())
 	if err != nil {
-		Log.error.Println("ClientDB.Add:", err)
+		log.Errorf("ClientDB.Add:", err)
 	}
 }
 
@@ -164,7 +165,7 @@ func (db *ClientDB) Remove(client *Client) {
 	_, err := db.db.Exec(`DELETE FROM client WHERE nickname = ?`,
 		client.Nick().String())
 	if err != nil {
-		Log.error.Println("ClientDB.Remove:", err)
+		log.Errorf("ClientDB.Remove:", err)
 	}
 }
 

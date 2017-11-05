@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"syscall"
 
 	"github.com/docopt/docopt-go"
 	"github.com/prologic/ircd/irc"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -15,7 +15,7 @@ func main() {
 	usage := `ircd.
 Usage:
 	ircd genpasswd [--conf <filename>]
-	ircd run [--conf <filename>]
+	ircd run [--conf <filename>] [ -d | --debug ]
 	ircd -h | --help
 	ircd -v | --version
 Options:
@@ -24,6 +24,12 @@ Options:
 	-v --version          Show version.`
 
 	arguments, _ := docopt.Parse(usage, nil, true, version, false)
+
+	if arguments["-d"].(bool) || arguments["--debug"].(bool) {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.WarnLevel)
+	}
 
 	// Special case -- We do not need to load the config file here
 	if arguments["genpasswd"].(bool) {
@@ -49,7 +55,6 @@ Options:
 	}
 
 	if arguments["run"].(bool) {
-		irc.Log.SetLevel(config.Server.Log)
 		server := irc.NewServer(config)
 		log.Println(irc.FullVersion(), "running")
 		defer log.Println(irc.FullVersion(), "exiting")
