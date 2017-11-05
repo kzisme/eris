@@ -61,6 +61,9 @@ func LoadConfig(filename string) (config *Config, err error) {
 	if config.Server.Name == "" {
 		return nil, errors.New("Server name missing")
 	}
+	if !IsHostname(config.Server.Name) {
+		return nil, errors.New("Server name must match the format of a hostname")
+	}
 	if len(config.Server.Listen)+len(config.Server.TLSListen) == 0 {
 		return nil, errors.New("Server listening addresses missing")
 	}
