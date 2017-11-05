@@ -2,7 +2,7 @@ package irc
 
 var (
 	// Version release version
-	Version = "1.5.1"
+	Version = "1.5.2"
 
 	// Build will be overwritten automatically by the build system
 	Build = "-dev"
