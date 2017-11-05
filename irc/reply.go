@@ -238,6 +238,10 @@ func (target *Client) RplWhois(client *Client) {
 	}
 	target.RplWhoisIdle(client)
 	target.RplWhoisChannels(client)
+
+	if client.flags[SecureConn] {
+		target.RplWhoisSecure(client)
+	}
 	target.RplEndOfWhois()
 }
 
@@ -250,6 +254,14 @@ func (target *Client) RplWhoisUser(client *Client) {
 func (target *Client) RplWhoisOperator(client *Client) {
 	target.NumericReply(RPL_WHOISOPERATOR,
 		"%s :is an IRC operator", client.Nick())
+}
+
+func (target *Client) RplWhoisSecure(client *Client) {
+	target.NumericReply(
+		RPL_WHOISSECURE,
+		"%s :is using a secure connection",
+		client.Nick(),
+	)
 }
 
 func (target *Client) RplWhoisIdle(client *Client) {
@@ -540,6 +552,15 @@ func (target *Client) ErrUserNotInChannel(channel *Channel, client *Client) {
 func (target *Client) ErrCannotSendToChan(channel *Channel) {
 	target.NumericReply(ERR_CANNOTSENDTOCHAN,
 		"%s :Cannot send to channel", channel)
+}
+
+func (target *Client) ErrCannotSendToUser(nick Name, reason string) {
+	target.NumericReply(
+		ERR_CANNOTSENDTOUSER,
+		":Cannot send to user %s (%s)",
+		nick,
+		reason,
+	)
 }
 
 // <channel> :You're not channel operator

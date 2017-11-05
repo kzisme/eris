@@ -1,6 +1,7 @@
 package irc
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net"
 	"time"
@@ -46,6 +47,12 @@ func NewClient(server *Server, conn net.Conn) *Client {
 		server:       server,
 		socket:       NewSocket(conn),
 	}
+
+	if _, ok := conn.(*tls.Conn); ok {
+		client.flags[SecureConn] = true
+		client.flags[SecureOnly] = true
+	}
+
 	client.Touch()
 	go client.run()
 

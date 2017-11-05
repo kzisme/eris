@@ -172,6 +172,8 @@ const (
 	ERR_RESTRICTED        NumericCode = 484
 	ERR_UNIQOPPRIVSNEEDED NumericCode = 485
 	ERR_NOOPERHOST        NumericCode = 491
+	ERR_CANNOTSENDTOUSER  NumericCode = 492
 	ERR_UMODEUNKNOWNFLAG  NumericCode = 501
 	ERR_USERSDONTMATCH    NumericCode = 502
+	RPL_WHOISSECURE       NumericCode = 671
 )
