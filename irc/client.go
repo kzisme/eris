@@ -171,6 +171,7 @@ func (client *Client) destroy() {
 
 	// clean up server
 
+	client.server.connections -= 1
 	client.server.clients.Remove(client)
 
 	// clean up self

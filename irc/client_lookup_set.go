@@ -54,6 +54,10 @@ func NewClientLookupSet() *ClientLookupSet {
 	}
 }
 
+func (clients *ClientLookupSet) Count() int {
+	return len(clients.byNick)
+}
+
 func (clients *ClientLookupSet) Get(nick Name) *Client {
 	return clients.byNick[nick.ToLower()]
 }

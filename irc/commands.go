@@ -49,6 +49,7 @@ var (
 		PRIVMSG: ParsePrivMsgCommand,
 		QUIT:    ParseQuitCommand,
 		TIME:    ParseTimeCommand,
+		LUSERS:  ParseLUsersCommand,
 		TOPIC:   ParseTopicCommand,
 		USER:    ParseUserCommand,
 		VERSION: ParseVersionCommand,
@@ -848,6 +849,14 @@ func ParseTimeCommand(args []string) (Command, error) {
 		cmd.target = NewName(args[0])
 	}
 	return cmd, nil
+}
+
+type LUsersCommand struct {
+	BaseCommand
+}
+
+func ParseLUsersCommand(args []string) (Command, error) {
+	return &LUsersCommand{}, nil
 }
 
 type KillCommand struct {

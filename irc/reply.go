@@ -476,6 +476,76 @@ func (target *Client) RplTime() {
 		"%s :%s", target.server.name, time.Now().Format(time.RFC1123))
 }
 
+func (target *Client) RplLUserClient() {
+	target.NumericReply(
+		RPL_LUSERCLIENT,
+		"There are %d users and %d invisible on %d servers",
+		// TODO: count global visible users
+		target.server.clients.Count(),
+		// TODO: count global invisible users
+		0,
+		// TODO: count global server connections
+		1,
+	)
+}
+
+func (target *Client) RplLUserUnknown() {
+	nUnknown := target.server.connections - len(target.server.clients.byNick)
+
+	if nUnknown == 0 {
+		return
+	}
+
+	target.NumericReply(
+		RPL_LUSERUNKNOWN,
+		"%d :unknown connections(s)",
+		nUnknown,
+	)
+}
+
+func (target *Client) RplLUserChannels() {
+	nChannels := len(target.server.channels)
+	if nChannels == 0 {
+		return
+	}
+
+	target.NumericReply(
+		RPL_LUSERCHANNELS,
+		"%d :channel(s) formed",
+		nChannels,
+	)
+}
+
+func (target *Client) RplLUserOp() {
+	nOperators := 0
+	for _, client := range target.server.clients.byNick {
+		if client.flags[Operator] {
+			nOperators += 1
+		}
+	}
+
+	if nOperators == 0 {
+		return
+	}
+
+	target.NumericReply(
+		RPL_LUSEROP,
+		"%d :operator(s) online",
+		// TODO: state store should know this
+		nOperators,
+	)
+}
+
+func (target *Client) RplLUserMe() {
+	target.NumericReply(
+		RPL_LUSERME,
+		"I have %d clients and %d servers",
+		target.server.clients.Count(),
+		// TODO: count server connections
+		1,
+	)
+}
+
 func (target *Client) RplWhoWasUser(whoWas *WhoWas) {
 	target.NumericReply(RPL_WHOWASUSER,
 		"%s %s %s * :%s",

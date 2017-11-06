@@ -7,7 +7,6 @@ const (
 	// string codes
 	AWAY    StringCode = "AWAY"
 	CAP     StringCode = "CAP"
-	DEBUG   StringCode = "DEBUG"
 	ERROR   StringCode = "ERROR"
 	INVITE  StringCode = "INVITE"
 	ISON    StringCode = "ISON"
@@ -30,6 +29,7 @@ const (
 	PRIVMSG StringCode = "PRIVMSG"
 	QUIT    StringCode = "QUIT"
 	TIME    StringCode = "TIME"
+	LUSERS  StringCode = "LUSERS"
 	TOPIC   StringCode = "TOPIC"
 	USER    StringCode = "USER"
 	VERSION StringCode = "VERSION"

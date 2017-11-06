@@ -28,6 +28,7 @@ type RegServerCommand interface {
 type Server struct {
 	config      *Config
 	channels    ChannelNameMap
+	connections int
 	clients     *ClientLookupSet
 	commands    chan Command
 	ctime       time.Time
@@ -169,6 +170,7 @@ func (s *Server) acceptor(listener net.Listener) {
 		}
 		log.Debugf("%s accept: %s", s, conn.RemoteAddr())
 
+		s.connections += 1
 		s.newConns <- conn
 	}
 }
@@ -224,6 +226,11 @@ func (s *Server) tryRegister(c *Client) {
 	c.RplYourHost()
 	c.RplCreated()
 	c.RplMyInfo()
+
+	lusers := LUsersCommand{}
+	lusers.SetClient(c)
+	lusers.HandleServer(s)
+
 	s.MOTD(c)
 }
 
@@ -714,6 +721,16 @@ func (msg *TimeCommand) HandleServer(server *Server) {
 		return
 	}
 	client.RplTime()
+}
+
+func (msg *LUsersCommand) HandleServer(server *Server) {
+	client := msg.Client()
+
+	client.RplLUserClient()
+	client.RplLUserOp()
+	client.RplLUserUnknown()
+	client.RplLUserChannels()
+	client.RplLUserMe()
 }
 
 func (msg *KillCommand) HandleServer(server *Server) {
