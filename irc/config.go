@@ -33,7 +33,6 @@ type Config struct {
 
 	Server struct {
 		PassConfig  `yaml:",inline"`
-		Database    string
 		Listen      []string
 		TLSListen   map[string]*TLSConfig
 		Log         string

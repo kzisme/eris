@@ -1,30 +1,18 @@
 package irc
 
 import (
-	"database/sql"
 	"errors"
 	"regexp"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/DanielOaks/girc-go/ircmatch"
 )
 
 var (
 	ErrNickMissing      = errors.New("nick missing")
 	ErrNicknameInUse    = errors.New("nickname in use")
 	ErrNicknameMismatch = errors.New("nickname mismatch")
-	wildMaskExpr        = regexp.MustCompile(`\*|\?`)
-	likeQuoter          = strings.NewReplacer(
-		`\`, `\\`,
-		`%`, `\%`,
-		`_`, `\_`,
-		`*`, `%`,
-		`?`, `_`)
 )
-
-func HasWildcards(mask string) bool {
-	return wildMaskExpr.MatchString(mask)
-}
 
 func ExpandUserHost(userhost Name) (expanded Name) {
 	expanded = userhost
@@ -38,19 +26,13 @@ func ExpandUserHost(userhost Name) (expanded Name) {
 	return
 }
 
-func QuoteLike(userhost Name) string {
-	return likeQuoter.Replace(userhost.String())
-}
-
 type ClientLookupSet struct {
 	byNick map[Name]*Client
-	db     *ClientDB
 }
 
 func NewClientLookupSet() *ClientLookupSet {
 	return &ClientLookupSet{
 		byNick: make(map[Name]*Client),
-		db:     NewClientDB(),
 	}
 }
 
@@ -70,7 +52,6 @@ func (clients *ClientLookupSet) Add(client *Client) error {
 		return ErrNicknameInUse
 	}
 	clients.byNick[client.Nick().ToLower()] = client
-	clients.db.Add(client)
 	return nil
 }
 
@@ -82,95 +63,39 @@ func (clients *ClientLookupSet) Remove(client *Client) error {
 		return ErrNicknameMismatch
 	}
 	delete(clients.byNick, client.nick.ToLower())
-	clients.db.Remove(client)
 	return nil
 }
 
 func (clients *ClientLookupSet) FindAll(userhost Name) (set ClientSet) {
-	userhost = ExpandUserHost(userhost)
 	set = make(ClientSet)
-	rows, err := clients.db.db.Query(
-		`SELECT nickname FROM client WHERE userhost LIKE ? ESCAPE '\'`,
-		QuoteLike(userhost))
-	if err != nil {
-		log.Errorf("ClientLookupSet.FindAll.Query:", err)
-		return
-	}
-	for rows.Next() {
-		var sqlNickname string
-		err := rows.Scan(&sqlNickname)
-		if err != nil {
-			log.Errorf("ClientLookupSet.FindAll.Scan:", err)
-			return
+
+	userhost = ExpandUserHost(userhost)
+	matcher := ircmatch.MakeMatch(userhost.String())
+
+	var casemappedNickMask string
+	for _, client := range clients.byNick {
+		casemappedNickMask = client.UserHost().String()
+		if matcher.Match(casemappedNickMask) {
+			set.Add(client)
 		}
-		nickname := Name(sqlNickname)
-		client := clients.Get(nickname)
-		if client == nil {
-			log.Errorf("ClientLookupSet.FindAll: missing client:", nickname)
-			continue
-		}
-		set.Add(client)
 	}
-	return
+
+	return set
 }
 
 func (clients *ClientLookupSet) Find(userhost Name) *Client {
 	userhost = ExpandUserHost(userhost)
-	row := clients.db.db.QueryRow(
-		`SELECT nickname FROM client WHERE userhost LIKE ? ESCAPE '\' LIMIT 1`,
-		QuoteLike(userhost))
-	var nickname Name
-	err := row.Scan(&nickname)
-	if err != nil {
-		log.Errorf("ClientLookupSet.Find:", err)
-		return nil
-	}
-	return clients.Get(nickname)
-}
+	matcher := ircmatch.MakeMatch(userhost.String())
 
-//
-// client db
-//
-
-type ClientDB struct {
-	db *sql.DB
-}
-
-func NewClientDB() *ClientDB {
-	db := &ClientDB{
-		db: OpenDB(":memory:"),
-	}
-	stmts := []string{
-		`CREATE TABLE client (
-          nickname TEXT NOT NULL COLLATE NOCASE UNIQUE,
-          userhost TEXT NOT NULL COLLATE NOCASE,
-          UNIQUE (nickname, userhost) ON CONFLICT REPLACE)`,
-		`CREATE UNIQUE INDEX idx_nick ON client (nickname COLLATE NOCASE)`,
-		`CREATE UNIQUE INDEX idx_uh ON client (userhost COLLATE NOCASE)`,
-	}
-	for _, stmt := range stmts {
-		_, err := db.db.Exec(stmt)
-		if err != nil {
-			log.Fatal("NewClientDB: ", stmt, err)
+	var casemappedNickMask string
+	for _, client := range clients.byNick {
+		casemappedNickMask = client.UserHost().String()
+		if matcher.Match(casemappedNickMask) {
+			return client
 		}
 	}
-	return db
-}
 
-func (db *ClientDB) Add(client *Client) {
-	_, err := db.db.Exec(`INSERT INTO client (nickname, userhost) VALUES (?, ?)`,
-		client.Nick().String(), client.UserHost().String())
-	if err != nil {
-		log.Errorf("ClientDB.Add:", err)
-	}
-}
-
-func (db *ClientDB) Remove(client *Client) {
-	_, err := db.db.Exec(`DELETE FROM client WHERE nickname = ?`,
-		client.Nick().String())
-	if err != nil {
-		log.Errorf("ClientDB.Remove:", err)
-	}
+	return nil
 }
 
 //
