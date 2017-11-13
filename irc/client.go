@@ -213,7 +213,7 @@ func (client *Client) CanSpeak(target *Client) bool {
 	isSecure := client.flags[SecureConn] && target.flags[SecureConn]
 	isOperator := client.flags[Operator]
 
-	return requiresSecure && (isOperator || isSecure)
+	return !requiresSecure || (requiresSecure && (isOperator || isSecure))
 }
 
 // <mode>
