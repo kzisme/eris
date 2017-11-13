@@ -30,7 +30,6 @@ type Server struct {
 	channels    ChannelNameMap
 	connections int
 	clients     *ClientLookupSet
-	commands    chan Command
 	ctime       time.Time
 	idle        chan *Client
 	motdFile    string
@@ -53,7 +52,6 @@ func NewServer(config *Config) *Server {
 		config:      config,
 		channels:    make(ChannelNameMap),
 		clients:     NewClientLookupSet(),
-		commands:    make(chan Command),
 		ctime:       time.Now(),
 		idle:        make(chan *Client),
 		motdFile:    config.Server.MOTD,
@@ -80,40 +78,6 @@ func NewServer(config *Config) *Server {
 	signal.Notify(server.signals, SERVER_SIGNALS...)
 
 	return server
-}
-
-func (server *Server) processCommand(cmd Command) {
-	client := cmd.Client()
-
-	if !client.registered {
-		regCmd, ok := cmd.(RegServerCommand)
-		if !ok {
-			client.Quit("unexpected command")
-			return
-		}
-		regCmd.HandleRegServer(server)
-		return
-	}
-
-	srvCmd, ok := cmd.(ServerCommand)
-	if !ok {
-		client.ErrUnknownCommand(cmd.Code())
-		return
-	}
-
-	switch srvCmd.(type) {
-	case *PingCommand, *PongCommand:
-		client.Touch()
-
-	case *QuitCommand:
-		// no-op
-
-	default:
-		client.Active()
-		client.Touch()
-	}
-
-	srvCmd.HandleServer(server)
 }
 
 func (server *Server) Wallops(message string) {
@@ -143,10 +107,7 @@ func (server *Server) Run() {
 			done = true
 
 		case conn := <-server.newConns:
-			NewClient(server, conn)
-
-		case cmd := <-server.commands:
-			server.processCommand(cmd)
+			go NewClient(server, conn)
 
 		case client := <-server.idle:
 			client.Idle()

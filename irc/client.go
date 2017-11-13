@@ -33,6 +33,7 @@ type Client struct {
 	registered   bool
 	server       *Server
 	socket       *Socket
+	commands     chan Command
 	username     Name
 }
 
@@ -48,6 +49,7 @@ func NewClient(server *Server, conn net.Conn) *Client {
 		flags:        make(map[UserMode]bool),
 		server:       server,
 		socket:       NewSocket(conn),
+		commands:     make(chan Command),
 	}
 
 	if _, ok := conn.(*tls.Conn); ok {
@@ -101,19 +103,48 @@ func (client *Client) run() {
 			checkPass.CheckPassword()
 		}
 
-		client.send(command)
+		client.processCommand(command)
 	}
 }
 
-func (client *Client) send(command Command) {
-	command.SetClient(client)
-	client.server.commands <- command
+func (client *Client) processCommand(cmd Command) {
+	cmd.SetClient(client)
+
+	if !client.registered {
+		regCmd, ok := cmd.(RegServerCommand)
+		if !ok {
+			client.Quit("unexpected command")
+			return
+		}
+		regCmd.HandleRegServer(client.server)
+		return
+	}
+
+	srvCmd, ok := cmd.(ServerCommand)
+	if !ok {
+		client.ErrUnknownCommand(cmd.Code())
+		return
+	}
+
+	switch srvCmd.(type) {
+	case *PingCommand, *PongCommand:
+		client.Touch()
+
+	case *QuitCommand:
+		// no-op
+
+	default:
+		client.Active()
+		client.Touch()
+	}
+
+	srvCmd.HandleServer(client.server)
 }
 
 // quit timer goroutine
 
 func (client *Client) connectionTimeout() {
-	client.send(NewQuitCommand("connection timeout"))
+	client.processCommand(NewQuitCommand("connection timeout"))
 }
 
 //
