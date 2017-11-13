@@ -10,7 +10,7 @@ import (
 var (
 	// regexps
 	ChannelNameExpr = regexp.MustCompile(`^[&!#+][\pL\pN]{1,63}$`)
-	NicknameExpr    = regexp.MustCompile("^[\\pL\\pN\\pP\\pS]{1,32}$")
+	NicknameExpr    = regexp.MustCompile(`^[\\pL\\pN\\pP\\pS]{1,32}$`)
 )
 
 // Names are normalized and canonicalized to remove formatting marks

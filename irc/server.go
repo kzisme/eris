@@ -82,13 +82,6 @@ func NewServer(config *Config) *Server {
 	return server
 }
 
-func loadChannelList(channel *Channel, list string, maskMode ChannelMode) {
-	if list == "" {
-		return
-	}
-	channel.lists[maskMode].AddAll(NewNames(strings.Split(list, " ")))
-}
-
 func (server *Server) processCommand(cmd Command) {
 	client := cmd.Client()
 
