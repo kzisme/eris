@@ -200,8 +200,7 @@ func (channel *Channel) GetTopic(client *Client) {
 	}
 
 	if channel.topic == "" {
-		// clients appear not to expect this
-		//replier.Reply(RplNoTopic(channel))
+		client.RplNoTopic(channel)
 		return
 	}
 
