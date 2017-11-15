@@ -2,7 +2,7 @@
 
 CGO_ENABLED=0
 COMMIT=`git rev-parse --short HEAD`
-APP=ircd
+APP=eris
 PACKAGE=irc
 REPO?=prologic/$(APP)
 TAG?=latest

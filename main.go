@@ -5,19 +5,19 @@ import (
 	"syscall"
 
 	"github.com/docopt/docopt-go"
-	"github.com/prologic/ircd/irc"
+	"github.com/prologic/eris/irc"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 func main() {
 	version := irc.FullVersion()
-	usage := `ircd.
+	usage := `eris.
 Usage:
-	ircd genpasswd [--conf <filename>]
-	ircd run [--conf <filename>] [ -d | --debug ]
-	ircd -h | --help
-	ircd -v | --version
+	eris genpasswd [--conf <filename>]
+	eris run [--conf <filename>] [ -d | --debug ]
+	eris -h | --help
+	eris -v | --version
 Options:
 	-c --conf <filename>  Configuration file to use [default: ircd.yml].
 	-h --help          Show this screen.

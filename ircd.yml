@@ -1,31 +1,31 @@
 server:
-    # server name
-    name: localhost.localdomain
+  # server name
+  name: localhost.localdomain
 
-    # server description
-    description: Local Server
+  # server description
+  description: Local Server
 
-    # addresses to listen on
-    listen:
-        - ":6667"
+  # addresses to listen on
+  listen:
+    - ":6667"
 
-    # addresses to listen on for TLS
-    tlslisten:
-        ":6697":
-            key: key.pem
-            cert: cert.pem
+  # addresses to listen on for TLS
+  tlslisten:
+    ":6697":
+      key: key.pem
+      cert: cert.pem
 
-    # password to login to the server
-    # generated using  "ircd genpasswd"
-    #password: ""
+  # password to login to the server
+  # generated using  "ircd genpasswd"
+  #password: ""
 
-    # motd filename
-    motd: ircd.motd
+  # motd filename
+  motd: ircd.motd
 
-# ircd operators
+# irc operators
 operator:
-    # operator named 'admin' with password 'password'
-    admin:
-        # password to login with /OPER command
-        # generated using  "ircd genpasswd"
-        password: JDJhJDA0JE1vZmwxZC9YTXBhZ3RWT2xBbkNwZnV3R2N6VFUwQUI0RUJRVXRBRHliZVVoa0VYMnlIaGsu
+  # operator named 'admin' with password 'password'
+  admin:
+   # password to login with /OPER command
+   # generated using  "ircd genpasswd"
+   password: JDJhJDA0JE1vZmwxZC9YTXBhZ3RWT2xBbkNwZnV3R2N6VFUwQUI0RUJRVXRBRHliZVVoa0VYMnlIaGsu

@@ -1,4 +1,4 @@
-# ircd - IRC Daemon
+# eris - IRC Server / Daemon written in Go
 
 > This project and repository is based off of [ergonomadic](https://github.com/edmund-huber/ergonomadic)
 > and much of my original contributions were made in my [fork of ergonomadic](https://github.com/prologic/ergonomadic)
@@ -8,12 +8,26 @@
 
 ----
 
-ircd is an IRC daemon written from scratch in Go.
+> In philosophy and rhetoric, eristic (from Eris, the ancient Greek goddess
+> of chaos, strife, and discord) refers to argument that aims to successfully
+> dispute another's argument, rather than searching for truth. According to T.H.
+
+From [Eris](https://en.wikipedia.org/wiki/Eris_(mythology))
+and [Eristic](https://en.wikipedia.org/wiki/Eristic)
+
+The connotation here is that IRC (*Internet Relay Chat*) is a place of chaos,
+strife and discord. IRC is a place where you argue and get into arguments for
+the sake of argument.
+
+So `eris` is an IRC daemon written from scratch in Go to factiliate discord
+and have arguments for the sake of argument!
+
 Pull requests and issues are welcome.
 
 Discussion at:
-* host/port: irc.mills.io:6697 (*use SSL*)
-* #lobby
+
+* /server irc.mills.io:6697 (*use SSL*)
+* /join #lobby
 
 ## Features
 
@@ -32,8 +46,8 @@ Discussion at:
 ## Installation
 
 ```#!bash
-$ go install github.com/prologic/ircd
-$ ircd --help
+$ go install github.com/prologic/eris
+$ eris --help
 ```
 
 ## Configuration
@@ -42,18 +56,15 @@ See the example [ircd.yml](ircd.yml). Passwords are base64-encoded
 bcrypted byte strings. You can generate them with the `genpasswd` subcommand.
 
 ```#!bash
-$ ircd genpasswd
+$ eris genpasswd
 ```
 
 ## Running the server
 
 ```#!bash
-$ ircd run
+$ eris run
 ```
 
-## Credits
+## License
 
-* Jeremy Latt, creator, <https://github.com/jlatt>
-* Edmund Huber, maintainer, <https://github.com/edmund-huber>
-* Niels Freier, added WebSocket support, <https://github.com/stumpyfr>
-* apologies to anyone I forgot.
+eris is licensed under the MIT License.

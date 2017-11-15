@@ -180,7 +180,7 @@ func (target *Client) RplWelcome() {
 func (target *Client) RplYourHost() {
 	target.NumericReply(
 		RPL_YOURHOST,
-		":Your host is %s, running version %s",
+		":Your host is %s, running eris version %s",
 		target.server.name,
 		FullVersion(),
 	)

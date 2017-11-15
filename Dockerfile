@@ -4,7 +4,7 @@ FROM golang:alpine AS build
 ARG TAG
 ARG BUILD
 
-ENV APP ircd
+ENV APP eris
 ENV REPO prologic/$APP
 
 RUN apk add --update git make build-base && \
@@ -17,14 +17,14 @@ RUN make TAG=$TAG BUILD=$BUILD build
 # Runtime
 FROM alpine
 
-ENV APP ircd
+ENV APP eris
 ENV REPO prologic/$APP
 
-LABEL ircd.app main
+LABEL eris.app main
 
 COPY --from=build /go/src/github.com/${REPO}/${APP} /${APP}
 
 EXPOSE 6667/tcp 6697/tcp
 
-ENTRYPOINT ["/ircd"]
+ENTRYPOINT ["/eris"]
 CMD ["run"]
