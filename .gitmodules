@@ -1,0 +1,27 @@
+[submodule "vendor/github.com/docopt/docopt-go"]
+	path = vendor/github.com/docopt/docopt-go
+	url = https://github.com/docopt/docopt-go
+[submodule "vendor/github.com/sirupsen/logrus"]
+	path = vendor/github.com/sirupsen/logrus
+	url = https://github.com/sirupsen/logrus
+[submodule "vendor/golang.org/x/crypto"]
+	path = vendor/golang.org/x/crypto
+	url = https://go.googlesource.com/crypto
+[submodule "vendor/golang.org/x/sys"]
+	path = vendor/golang.org/x/sys
+	url = https://go.googlesource.com/sys
+[submodule "vendor/github.com/DanielOaks/girc-go"]
+	path = vendor/github.com/DanielOaks/girc-go
+	url = https://github.com/DanielOaks/girc-go
+[submodule "vendor/github.com/goshuirc/e-nfa"]
+	path = vendor/github.com/goshuirc/e-nfa
+	url = https://github.com/goshuirc/e-nfa
+[submodule "vendor/github.com/imdario/mergo"]
+	path = vendor/github.com/imdario/mergo
+	url = https://github.com/imdario/mergo
+[submodule "vendor/golang.org/x/text"]
+	path = vendor/golang.org/x/text
+	url = https://go.googlesource.com/text
+[submodule "vendor/gopkg.in/yaml.v2"]
+	path = vendor/gopkg.in/yaml.v2
+	url = https://gopkg.in/yaml.v2
