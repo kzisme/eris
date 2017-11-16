@@ -4,6 +4,7 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/DanielOaks/girc-go/ircmatch"
 )
@@ -27,6 +28,7 @@ func ExpandUserHost(userhost Name) (expanded Name) {
 }
 
 type ClientLookupSet struct {
+	sync.RWMutex
 	byNick map[Name]*Client
 }
 
@@ -37,10 +39,16 @@ func NewClientLookupSet() *ClientLookupSet {
 }
 
 func (clients *ClientLookupSet) Count() int {
+	clients.RLock()
+	defer clients.RUnlock()
+
 	return len(clients.byNick)
 }
 
 func (clients *ClientLookupSet) Get(nick Name) *Client {
+	clients.RLock()
+	defer clients.RUnlock()
+
 	return clients.byNick[nick.ToLower()]
 }
 
@@ -51,6 +59,10 @@ func (clients *ClientLookupSet) Add(client *Client) error {
 	if clients.Get(client.nick) != nil {
 		return ErrNicknameInUse
 	}
+
+	clients.Lock()
+	defer clients.Unlock()
+
 	clients.byNick[client.Nick().ToLower()] = client
 	return nil
 }
@@ -62,11 +74,18 @@ func (clients *ClientLookupSet) Remove(client *Client) error {
 	if clients.Get(client.nick) != client {
 		return ErrNicknameMismatch
 	}
+
+	clients.Lock()
+	defer clients.Unlock()
+
 	delete(clients.byNick, client.nick.ToLower())
 	return nil
 }
 
 func (clients *ClientLookupSet) FindAll(userhost Name) (set ClientSet) {
+	clients.RLock()
+	defer clients.RUnlock()
+
 	set = make(ClientSet)
 
 	userhost = ExpandUserHost(userhost)
@@ -84,6 +103,9 @@ func (clients *ClientLookupSet) FindAll(userhost Name) (set ClientSet) {
 }
 
 func (clients *ClientLookupSet) Find(userhost Name) *Client {
+	clients.RLock()
+	defer clients.RUnlock()
+
 	userhost = ExpandUserHost(userhost)
 	matcher := ircmatch.MakeMatch(userhost.String())
 

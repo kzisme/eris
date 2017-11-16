@@ -3,31 +3,71 @@ package irc
 import (
 	"fmt"
 	"strings"
+	"sync"
 )
 
 //
 // simple types
 //
 
-type ChannelNameMap map[Name]*Channel
-
-func (channels ChannelNameMap) Get(name Name) *Channel {
-	return channels[name.ToLower()]
+// ChannelNameMap holds a mapping of channel names to *Channel structs
+// that is safe for concurrent readers and writers.
+type ChannelNameMap struct {
+	sync.RWMutex
+	channels map[Name]*Channel
 }
 
-func (channels ChannelNameMap) Add(channel *Channel) error {
-	if channels[channel.name.ToLower()] != nil {
+// NewChannelNameMap returns a new initialized *ChannelNameMap
+func NewChannelNameMap() *ChannelNameMap {
+	return &ChannelNameMap{
+		channels: make(map[Name]*Channel),
+	}
+}
+
+// Length returns the number of *Channel9s)
+func (c *ChannelNameMap) Length() int {
+	c.RLock()
+	defer c.RUnlock()
+	return len(c.channels)
+}
+
+// Range ranges of the *Channels(s) calling f
+func (c *ChannelNameMap) Range(f func(kay Name, value *Channel) bool) {
+	c.Lock()
+	defer c.Unlock()
+	for k, v := range c.channels {
+		if !f(k, v) {
+			break
+		}
+	}
+}
+
+// Get returns a *Channel given a name if it exists or a zero-value *Channel
+func (c *ChannelNameMap) Get(name Name) *Channel {
+	c.RLock()
+	defer c.RUnlock()
+	return c.channels[name.ToLower()]
+}
+
+// Add adds a new *Channel if not already exists or an error otherwise
+func (c *ChannelNameMap) Add(channel *Channel) error {
+	c.Lock()
+	defer c.Unlock()
+	if c.channels[channel.name.ToLower()] != nil {
 		return fmt.Errorf("%s: already set", channel.name)
 	}
-	channels[channel.name.ToLower()] = channel
+	c.channels[channel.name.ToLower()] = channel
 	return nil
 }
 
-func (channels ChannelNameMap) Remove(channel *Channel) error {
-	if channel != channels[channel.name.ToLower()] {
+// Remove removes a *Channel if it exists or an error otherwise
+func (c *ChannelNameMap) Remove(channel *Channel) error {
+	c.Lock()
+	defer c.Unlock()
+	if channel != c.channels[channel.name.ToLower()] {
 		return fmt.Errorf("%s: mismatch", channel.name)
 	}
-	delete(channels, channel.name.ToLower())
+	delete(c.channels, channel.name.ToLower())
 	return nil
 }
 

@@ -27,7 +27,7 @@ type RegServerCommand interface {
 
 type Server struct {
 	config      *Config
-	channels    ChannelNameMap
+	channels    *ChannelNameMap
 	connections int
 	clients     *ClientLookupSet
 	ctime       time.Time
@@ -50,7 +50,7 @@ var (
 func NewServer(config *Config) *Server {
 	server := &Server{
 		config:      config,
-		channels:    make(ChannelNameMap),
+		channels:    NewChannelNameMap(),
 		clients:     NewClientLookupSet(),
 		ctime:       time.Now(),
 		idle:        make(chan *Client),
@@ -461,9 +461,10 @@ func (msg *WhoCommand) HandleServer(server *Server) {
 	mask := msg.mask
 
 	if mask == "" {
-		for _, channel := range server.channels {
+		server.channels.Range(func(name Name, channel *Channel) bool {
 			whoChannel(client, channel, friends)
-		}
+			return true
+		})
 	} else if mask.IsChannel() {
 		// TODO implement wildcard matching
 		channel := server.channels.Get(mask)
@@ -601,12 +602,13 @@ func (msg *ListCommand) HandleServer(server *Server) {
 	}
 
 	if len(msg.channels) == 0 {
-		for _, channel := range server.channels {
+		server.channels.Range(func(name Name, channel *Channel) bool {
 			if !client.flags[Operator] && channel.flags[Private] {
-				continue
+				return true
 			}
 			client.RplList(channel)
-		}
+			return false
+		})
 	} else {
 		for _, chname := range msg.channels {
 			channel := server.channels.Get(chname)
@@ -622,10 +624,11 @@ func (msg *ListCommand) HandleServer(server *Server) {
 
 func (msg *NamesCommand) HandleServer(server *Server) {
 	client := msg.Client()
-	if len(server.channels) == 0 {
-		for _, channel := range server.channels {
+	if server.channels.Length() == 0 {
+		server.channels.Range(func(name Name, channel *Channel) bool {
 			channel.Names(client)
-		}
+			return true
+		})
 		return
 	}
 
