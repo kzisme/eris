@@ -504,7 +504,7 @@ func (target *Client) RplLUserUnknown() {
 }
 
 func (target *Client) RplLUserChannels() {
-	nChannels := target.server.channels.Length()
+	nChannels := target.server.channels.Count()
 	if nChannels == 0 {
 		return
 	}

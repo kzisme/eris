@@ -24,8 +24,8 @@ func NewChannelNameMap() *ChannelNameMap {
 	}
 }
 
-// Length returns the number of *Channel9s)
-func (c *ChannelNameMap) Length() int {
+// Count returns the number of *Channel9s)
+func (c *ChannelNameMap) Count() int {
 	c.RLock()
 	defer c.RUnlock()
 	return len(c.channels)

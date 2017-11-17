@@ -80,27 +80,39 @@ func NewServer(config *Config) *Server {
 	signal.Notify(server.signals, SERVER_SIGNALS...)
 
 	// uptime metric
-	server.metrics.NewCounter(
+	server.metrics.NewCounterFunc(
 		"server", "uptime",
 		"Number of seconds the server has been running",
+		func() float64 {
+			return float64(time.Since(server.ctime).Nanoseconds())
+		},
 	)
-	t := time.NewTicker(time.Second * 1)
-	go func() {
-		for range t.C {
-			server.metrics.Counter("server", "uptime").Inc()
-		}
-	}()
 
 	// connections metric
-	server.metrics.NewGauge(
+	server.metrics.NewGaugeFunc(
 		"server", "connections",
 		"Number of active connections to the server",
+		func() float64 {
+			return float64(server.connections)
+		},
 	)
 
 	// clients metric
-	server.metrics.NewGauge(
+	server.metrics.NewGaugeFunc(
 		"server", "clients",
 		"Number of registered clients connected",
+		func() float64 {
+			return float64(server.clients.Count())
+		},
+	)
+
+	// channels metric
+	server.metrics.NewGaugeFunc(
+		"server", "channels",
+		"Number of active channels",
+		func() float64 {
+			return float64(server.channels.Count())
+		},
 	)
 
 	go server.metrics.Run(":9314")
@@ -135,7 +147,6 @@ func (server *Server) Run() {
 			done = true
 
 		case conn := <-server.newConns:
-			server.metrics.Gauge("server", "clients").Inc()
 			go NewClient(server, conn)
 
 		case client := <-server.idle:
@@ -654,7 +665,7 @@ func (msg *ListCommand) HandleServer(server *Server) {
 
 func (msg *NamesCommand) HandleServer(server *Server) {
 	client := msg.Client()
-	if server.channels.Length() == 0 {
+	if server.channels.Count() == 0 {
 		server.channels.Range(func(name Name, channel *Channel) bool {
 			channel.Names(client)
 			return true

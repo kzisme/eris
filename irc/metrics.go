@@ -39,6 +39,24 @@ func (m *Metrics) NewCounter(subsystem, name, help string) prometheus.Counter {
 	return counter
 }
 
+func (m *Metrics) NewCounterFunc(subsystem, name, help string, f func() float64) prometheus.CounterFunc {
+	counter := prometheus.NewCounterFunc(
+		prometheus.CounterOpts{
+			Namespace: m.namespace,
+			Subsystem: subsystem,
+			Name:      name,
+			Help:      help,
+		},
+		f,
+	)
+
+	key := fmt.Sprintf("%s_%s", subsystem, name)
+	m.metrics[key] = counter
+	prometheus.MustRegister(counter)
+
+	return counter
+}
+
 func (m *Metrics) NewGauge(subsystem, name, help string) prometheus.Gauge {
 	guage := prometheus.NewGauge(
 		prometheus.GaugeOpts{
@@ -47,6 +65,24 @@ func (m *Metrics) NewGauge(subsystem, name, help string) prometheus.Gauge {
 			Name:      name,
 			Help:      help,
 		},
+	)
+
+	key := fmt.Sprintf("%s_%s", subsystem, name)
+	m.metrics[key] = guage
+	prometheus.MustRegister(guage)
+
+	return guage
+}
+
+func (m *Metrics) NewGaugeFunc(subsystem, name, help string, f func() float64) prometheus.GaugeFunc {
+	guage := prometheus.NewGaugeFunc(
+		prometheus.GaugeOpts{
+			Namespace: m.namespace,
+			Subsystem: subsystem,
+			Name:      name,
+			Help:      help,
+		},
+		f,
 	)
 
 	key := fmt.Sprintf("%s_%s", subsystem, name)
