@@ -27,6 +27,7 @@ type RegServerCommand interface {
 
 type Server struct {
 	config      *Config
+	metrics     *Metrics
 	channels    *ChannelNameMap
 	connections int
 	clients     *ClientLookupSet
@@ -50,6 +51,7 @@ var (
 func NewServer(config *Config) *Server {
 	server := &Server{
 		config:      config,
+		metrics:     NewMetrics("eris"),
 		channels:    NewChannelNameMap(),
 		clients:     NewClientLookupSet(),
 		ctime:       time.Now(),
@@ -76,6 +78,32 @@ func NewServer(config *Config) *Server {
 	}
 
 	signal.Notify(server.signals, SERVER_SIGNALS...)
+
+	// uptime metric
+	server.metrics.NewCounter(
+		"server", "uptime",
+		"Number of seconds the server has been running",
+	)
+	t := time.NewTicker(time.Second * 1)
+	go func() {
+		for range t.C {
+			server.metrics.Counter("server", "uptime").Inc()
+		}
+	}()
+
+	// connections metric
+	server.metrics.NewGauge(
+		"server", "connections",
+		"Number of active connections to the server",
+	)
+
+	// clients metric
+	server.metrics.NewGauge(
+		"server", "clients",
+		"Number of registered clients connected",
+	)
+
+	go server.metrics.Run(":8080")
 
 	return server
 }
@@ -107,6 +135,7 @@ func (server *Server) Run() {
 			done = true
 
 		case conn := <-server.newConns:
+			server.metrics.Gauge("server", "clients").Inc()
 			go NewClient(server, conn)
 
 		case client := <-server.idle:
@@ -125,6 +154,7 @@ func (s *Server) acceptor(listener net.Listener) {
 		log.Debugf("%s accept: %s", s, conn.RemoteAddr())
 
 		s.connections += 1
+		s.metrics.Gauge("server", "connections").Inc()
 		s.newConns <- conn
 	}
 }

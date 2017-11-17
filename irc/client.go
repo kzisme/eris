@@ -203,6 +203,8 @@ func (client *Client) destroy() {
 	// clean up server
 
 	client.server.connections -= 1
+	client.server.metrics.Gauge("server", "connections").Dec()
+	client.server.metrics.Gauge("server", "clients").Dec()
 	client.server.clients.Remove(client)
 
 	// clean up self
