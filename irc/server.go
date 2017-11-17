@@ -165,7 +165,6 @@ func (s *Server) acceptor(listener net.Listener) {
 		log.Debugf("%s accept: %s", s, conn.RemoteAddr())
 
 		s.connections += 1
-		s.metrics.Gauge("server", "connections").Inc()
 		s.newConns <- conn
 	}
 }
