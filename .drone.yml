@@ -1,6 +1,6 @@
 workspace:
   base: /go
-  path: src/github.com/prologic/ircd
+  path: src/github.com/prologic/eris
 
 pipeline:
   build:
@@ -11,7 +11,7 @@ pipeline:
 
   docker:
     image: plugins/docker
-    repo: r.mills.io/prologic/ircd
+    repo: r.mills.io/prologic/eris
     registry: r.mills.io
     secrets: [ docker_username, docker_password ]
 
