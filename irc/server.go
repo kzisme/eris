@@ -103,7 +103,7 @@ func NewServer(config *Config) *Server {
 		"Number of registered clients connected",
 	)
 
-	go server.metrics.Run(":8080")
+	go server.metrics.Run(":9314")
 
 	return server
 }
