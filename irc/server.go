@@ -94,6 +94,12 @@ func NewServer(config *Config) *Server {
 		"Number of client commands processed",
 	)
 
+	// client messages counter
+	server.metrics.NewCounter(
+		"client", "messages",
+		"Number of client messages exchanged",
+	)
+
 	// server connections gauge
 	server.metrics.NewGaugeFunc(
 		"server", "connections",
@@ -444,6 +450,7 @@ func (msg *TopicCommand) HandleServer(server *Server) {
 }
 
 func (msg *PrivMsgCommand) HandleServer(server *Server) {
+	server.metrics.Counter("client", "messages").Inc()
 	client := msg.Client()
 	if msg.target.IsChannel() {
 		channel := server.channels.Get(msg.target)
@@ -608,6 +615,7 @@ func (msg *MOTDCommand) HandleServer(server *Server) {
 }
 
 func (msg *NoticeCommand) HandleServer(server *Server) {
+	server.metrics.Counter("client", "messages").Inc()
 	client := msg.Client()
 	if msg.target.IsChannel() {
 		channel := server.channels.Get(msg.target)
