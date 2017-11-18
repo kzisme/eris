@@ -27,4 +27,4 @@ COPY --from=build /go/src/github.com/${REPO}/${APP} /${APP}
 EXPOSE 6667/tcp 6697/tcp
 
 ENTRYPOINT ["/eris"]
-CMD ["run"]
+CMD [""]
