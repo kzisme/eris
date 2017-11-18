@@ -79,7 +79,7 @@ func NewServer(config *Config) *Server {
 
 	signal.Notify(server.signals, SERVER_SIGNALS...)
 
-	// uptime metric
+	// server uptime counter
 	server.metrics.NewCounterFunc(
 		"server", "uptime",
 		"Number of seconds the server has been running",
@@ -88,7 +88,7 @@ func NewServer(config *Config) *Server {
 		},
 	)
 
-	// connections metric
+	// server connections gauge
 	server.metrics.NewGaugeFunc(
 		"server", "connections",
 		"Number of active connections to the server",
@@ -97,7 +97,7 @@ func NewServer(config *Config) *Server {
 		},
 	)
 
-	// clients metric
+	// server clients gauge
 	server.metrics.NewGaugeFunc(
 		"server", "clients",
 		"Number of registered clients connected",
@@ -106,13 +106,26 @@ func NewServer(config *Config) *Server {
 		},
 	)
 
-	// channels metric
+	// server channels gauge
 	server.metrics.NewGaugeFunc(
 		"server", "channels",
 		"Number of active channels",
 		func() float64 {
 			return float64(server.channels.Count())
 		},
+	)
+
+	// client command processing time summaries
+	server.metrics.NewSummaryVec(
+		"client", "command_duration_seconds",
+		"Client command processing time in seconds",
+		[]string{"command"},
+	)
+
+	// client ping latency summary
+	server.metrics.NewSummary(
+		"client", "ping_latency_seconds",
+		"Client ping latency in seconds",
 	)
 
 	go server.metrics.Run(":9314")
@@ -359,7 +372,8 @@ func (m *PingCommand) HandleServer(s *Server) {
 }
 
 func (m *PongCommand) HandleServer(s *Server) {
-	// no-op
+	v := s.metrics.Summary("client", "ping_latency_seconds")
+	v.Observe(time.Now().Sub(m.Client().pingTime).Seconds())
 }
 
 func (m *UserCommand) HandleServer(s *Server) {

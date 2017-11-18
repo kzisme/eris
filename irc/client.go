@@ -26,6 +26,7 @@ type Client struct {
 	hasQuit      bool
 	hops         uint
 	hostname     Name
+	pingTime     time.Time
 	idleTimer    *time.Timer
 	nick         Name
 	quitTimer    *time.Timer
@@ -108,6 +109,11 @@ func (client *Client) run() {
 }
 
 func (client *Client) processCommand(cmd Command) {
+	defer func(t time.Time) {
+		v := client.server.metrics.SummaryVec("client", "command_duration_seconds")
+		v.WithLabelValues(cmd.Code().String()).Observe(time.Now().Sub(t).Seconds())
+	}(time.Now())
+
 	cmd.SetClient(client)
 
 	if !client.registered {
@@ -176,6 +182,7 @@ func (client *Client) Touch() {
 }
 
 func (client *Client) Idle() {
+	client.pingTime = time.Now()
 	client.Reply(RplPing(client.server))
 
 	if client.quitTimer == nil {
