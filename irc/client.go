@@ -109,6 +109,8 @@ func (client *Client) run() {
 }
 
 func (client *Client) processCommand(cmd Command) {
+	client.server.metrics.Counter("client", "commands").Inc()
+
 	defer func(t time.Time) {
 		v := client.server.metrics.SummaryVec("client", "command_duration_seconds")
 		v.WithLabelValues(cmd.Code().String()).Observe(time.Now().Sub(t).Seconds())

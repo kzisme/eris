@@ -88,6 +88,12 @@ func NewServer(config *Config) *Server {
 		},
 	)
 
+	// client commands counter
+	server.metrics.NewCounter(
+		"client", "commands",
+		"Number of client commands processed",
+	)
+
 	// server connections gauge
 	server.metrics.NewGaugeFunc(
 		"server", "connections",
