@@ -321,16 +321,16 @@ func (target *Client) RplWhoReply(channel *Channel, client *Client) {
 	if channel != nil {
 		channelName = channel.name.String()
 		if target.capabilities[MultiPrefix] {
-			if channel.members[client][ChannelOperator] {
+			if channel.members.Get(client).Has(ChannelOperator) {
 				flags += "@"
 			}
-			if channel.members[client][Voice] {
+			if channel.members.Get(client).Has(Voice) {
 				flags += "+"
 			}
 		} else {
-			if channel.members[client][ChannelOperator] {
+			if channel.members.Get(client).Has(ChannelOperator) {
 				flags += "@"
-			} else if channel.members[client][Voice] {
+			} else if channel.members.Get(client).Has(Voice) {
 				flags += "+"
 			}
 		}
@@ -439,7 +439,7 @@ func (target *Client) RplMOTDEnd() {
 
 func (target *Client) RplList(channel *Channel) {
 	target.NumericReply(RPL_LIST,
-		"%s %d :%s", channel, len(channel.members), channel.topic)
+		"%s %d :%s", channel, channel.members.Count(), channel.topic)
 }
 
 func (target *Client) RplListEnd(server *Server) {
@@ -490,7 +490,7 @@ func (target *Client) RplLUserClient() {
 }
 
 func (target *Client) RplLUserUnknown() {
-	nUnknown := target.server.connections - len(target.server.clients.byNick)
+	nUnknown := target.server.connections.Value() - target.server.clients.Count()
 
 	if nUnknown == 0 {
 		return
@@ -518,11 +518,12 @@ func (target *Client) RplLUserChannels() {
 
 func (target *Client) RplLUserOp() {
 	nOperators := 0
-	for _, client := range target.server.clients.byNick {
+	target.server.clients.Range(func(_ Name, client *Client) bool {
 		if client.flags[Operator] {
-			nOperators += 1
+			nOperators++
 		}
-	}
+		return true
+	})
 
 	if nOperators == 0 {
 		return

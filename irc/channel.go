@@ -5,10 +5,10 @@ import (
 )
 
 type Channel struct {
-	flags     ChannelModeSet
+	flags     *ChannelModeSet
 	lists     map[ChannelMode]*UserMaskSet
 	key       Text
-	members   MemberSet
+	members   *MemberSet
 	name      Name
 	server    *Server
 	topic     Text
@@ -19,20 +19,20 @@ type Channel struct {
 // string, which must be unique on the server.
 func NewChannel(s *Server, name Name, addDefaultModes bool) *Channel {
 	channel := &Channel{
-		flags: make(ChannelModeSet),
+		flags: NewChannelModeSet(),
 		lists: map[ChannelMode]*UserMaskSet{
 			BanMask:    NewUserMaskSet(),
 			ExceptMask: NewUserMaskSet(),
 			InviteMask: NewUserMaskSet(),
 		},
-		members: make(MemberSet),
+		members: NewMemberSet(),
 		name:    name,
 		server:  s,
 	}
 
 	if addDefaultModes {
 		for _, mode := range DefaultChannelModes {
-			channel.flags[mode] = true
+			channel.flags.Set(mode)
 		}
 	}
 
@@ -42,7 +42,7 @@ func NewChannel(s *Server, name Name, addDefaultModes bool) *Channel {
 }
 
 func (channel *Channel) IsEmpty() bool {
-	return len(channel.members) == 0
+	return channel.members.Count() == 0
 }
 
 func (channel *Channel) Names(client *Client) {
@@ -56,26 +56,29 @@ func (channel *Channel) ClientIsOperator(client *Client) bool {
 
 func (channel *Channel) Nicks(target *Client) []string {
 	isMultiPrefix := (target != nil) && target.capabilities[MultiPrefix]
-	nicks := make([]string, len(channel.members))
+	channel.members.RLock()
+	defer channel.members.RUnlock()
+	nicks := make([]string, channel.members.Count())
 	i := 0
-	for client, modes := range channel.members {
+	channel.members.Range(func(client *Client, modes *ChannelModeSet) bool {
 		if isMultiPrefix {
-			if modes[ChannelOperator] {
+			if modes.Has(ChannelOperator) {
 				nicks[i] += "@"
 			}
-			if modes[Voice] {
+			if modes.Has(Voice) {
 				nicks[i] += "+"
 			}
 		} else {
-			if modes[ChannelOperator] {
+			if modes.Has(ChannelOperator) {
 				nicks[i] += "@"
-			} else if modes[Voice] {
+			} else if modes.Has(Voice) {
 				nicks[i] += "+"
 			}
 		}
 		nicks[i] += client.Nick().String()
-		i += 1
-	}
+		i++
+		return true
+	})
 	return nicks
 }
 
@@ -106,9 +109,10 @@ func (channel *Channel) ModeString(client *Client) (str string) {
 	}
 
 	// flags
-	for mode := range channel.flags {
+	channel.flags.Range(func(mode ChannelMode) bool {
 		str += mode.String()
-	}
+		return true
+	})
 
 	str = "+" + str
 
@@ -126,7 +130,7 @@ func (channel *Channel) ModeString(client *Client) (str string) {
 
 func (channel *Channel) IsFull() bool {
 	return (channel.userLimit > 0) &&
-		(uint64(len(channel.members)) >= channel.userLimit)
+		(uint64(channel.members.Count()) >= channel.userLimit)
 }
 
 func (channel *Channel) CheckKey(key Text) bool {
@@ -152,7 +156,7 @@ func (channel *Channel) Join(client *Client, key Text) {
 	}
 
 	isInvited := channel.lists[InviteMask].Match(client.UserHost())
-	if !isOperator && channel.flags[InviteOnly] && !isInvited {
+	if !isOperator && channel.flags.Has(InviteOnly) && !isInvited {
 		client.ErrInviteOnlyChan(channel)
 		return
 	}
@@ -167,15 +171,16 @@ func (channel *Channel) Join(client *Client, key Text) {
 
 	client.channels.Add(channel)
 	channel.members.Add(client)
-	if len(channel.members) == 1 {
-		channel.members[client][ChannelCreator] = true
-		channel.members[client][ChannelOperator] = true
+	if channel.members.Count() == 1 {
+		channel.members.Get(client).Set(ChannelCreator)
+		channel.members.Get(client).Set(ChannelOperator)
 	}
 
 	reply := RplJoin(client, channel)
-	for member := range channel.members {
+	channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 		member.Reply(reply)
-	}
+		return true
+	})
 	channel.GetTopic(client)
 	channel.Names(client)
 }
@@ -187,9 +192,10 @@ func (channel *Channel) Part(client *Client, message Text) {
 	}
 
 	reply := RplPart(client, channel, message)
-	for member := range channel.members {
+	channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 		member.Reply(reply)
-	}
+		return true
+	})
 	channel.Quit(client)
 }
 
@@ -213,7 +219,7 @@ func (channel *Channel) SetTopic(client *Client, topic Text) {
 		return
 	}
 
-	if channel.flags[OpOnlyTopic] && !channel.ClientIsOperator(client) {
+	if channel.flags.Has(OpOnlyTopic) && !channel.ClientIsOperator(client) {
 		client.ErrChanOPrivIsNeeded(channel)
 		return
 	}
@@ -221,19 +227,20 @@ func (channel *Channel) SetTopic(client *Client, topic Text) {
 	channel.topic = topic
 
 	reply := RplTopicMsg(client, channel)
-	for member := range channel.members {
+	channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 		member.Reply(reply)
-	}
+		return true
+	})
 }
 
 func (channel *Channel) CanSpeak(client *Client) bool {
 	if channel.ClientIsOperator(client) {
 		return true
 	}
-	if channel.flags[NoOutside] && !channel.members.Has(client) {
+	if channel.flags.Has(NoOutside) && !channel.members.Has(client) {
 		return false
 	}
-	if channel.flags[Moderated] && !(channel.members.HasMode(client, Voice) ||
+	if channel.flags.Has(Moderated) && !(channel.members.HasMode(client, Voice) ||
 		channel.members.HasMode(client, ChannelOperator)) {
 		return false
 	}
@@ -246,12 +253,13 @@ func (channel *Channel) PrivMsg(client *Client, message Text) {
 		return
 	}
 	reply := RplPrivMsg(client, channel, message)
-	for member := range channel.members {
+	channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 		if member == client {
-			continue
+			return true
 		}
 		member.Reply(reply)
-	}
+		return true
+	})
 }
 
 func (channel *Channel) applyModeFlag(client *Client, mode ChannelMode,
@@ -263,17 +271,17 @@ func (channel *Channel) applyModeFlag(client *Client, mode ChannelMode,
 
 	switch op {
 	case Add:
-		if channel.flags[mode] {
+		if channel.flags.Has(mode) {
 			return false
 		}
-		channel.flags[mode] = true
+		channel.flags.Set(mode)
 		return true
 
 	case Remove:
-		if !channel.flags[mode] {
+		if !channel.flags.Has(mode) {
 			return false
 		}
-		delete(channel.flags, mode)
+		channel.flags.Unset(mode)
 		return true
 	}
 	return false
@@ -304,17 +312,17 @@ func (channel *Channel) applyModeMember(client *Client, mode ChannelMode,
 
 	switch op {
 	case Add:
-		if channel.members[target][mode] {
+		if channel.members.Get(target).Has(mode) {
 			return false
 		}
-		channel.members[target][mode] = true
+		channel.members.Get(target).Set(mode)
 		return true
 
 	case Remove:
-		if !channel.members[target][mode] {
+		if !channel.members.Get(target).Has(mode) {
 			return false
 		}
-		channel.members[target][mode] = false
+		channel.members.Get(target).Unset(mode)
 		return true
 	}
 	return false
@@ -428,9 +436,10 @@ func (channel *Channel) Mode(client *Client, changes ChannelModeChanges) {
 
 	if len(applied) > 0 {
 		reply := RplChannelMode(client, channel, applied)
-		for member := range channel.members {
+		channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 			member.Reply(reply)
-		}
+			return true
+		})
 	}
 }
 
@@ -440,17 +449,20 @@ func (channel *Channel) Notice(client *Client, message Text) {
 		return
 	}
 	reply := RplNotice(client, channel, message)
-	for member := range channel.members {
+	channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 		if member == client {
-			continue
+			return true
 		}
 		member.Reply(reply)
-	}
+		return true
+	})
 }
 
 func (channel *Channel) Quit(client *Client) {
 	channel.members.Remove(client)
-	client.channels.Remove(channel)
+	// XXX: Race Condition from client.destroy()
+	//      Do we need to?
+	// client.channels.Remove(channel)
 
 	if channel.IsEmpty() {
 		channel.server.channels.Remove(channel)
@@ -472,14 +484,15 @@ func (channel *Channel) Kick(client *Client, target *Client, comment Text) {
 	}
 
 	reply := RplKick(channel, client, target, comment)
-	for member := range channel.members {
+	channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 		member.Reply(reply)
-	}
+		return true
+	})
 	channel.Quit(target)
 }
 
 func (channel *Channel) Invite(invitee *Client, inviter *Client) {
-	if channel.flags[InviteOnly] && !channel.ClientIsOperator(inviter) {
+	if channel.flags.Has(InviteOnly) && !channel.ClientIsOperator(inviter) {
 		inviter.ErrChanOPrivIsNeeded(channel)
 		return
 	}
@@ -489,7 +502,7 @@ func (channel *Channel) Invite(invitee *Client, inviter *Client) {
 		return
 	}
 
-	if channel.flags[InviteOnly] {
+	if channel.flags.Has(InviteOnly) {
 		channel.lists[InviteMask].Add(invitee.UserHost())
 	}
 

@@ -4,7 +4,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
-	"sync"
+	//"sync"
+
+	sync "github.com/sasha-s/go-deadlock"
 
 	"github.com/imdario/mergo"
 	"gopkg.in/yaml.v2"

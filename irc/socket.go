@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"net"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -14,10 +15,11 @@ const (
 )
 
 type Socket struct {
-	closed  bool
-	conn    net.Conn
-	scanner *bufio.Scanner
-	writer  *bufio.Writer
+	closed      bool
+	closedMutex sync.RWMutex
+	conn        net.Conn
+	scanner     *bufio.Scanner
+	writer      *bufio.Writer
 }
 
 func NewSocket(conn net.Conn) *Socket {
@@ -33,6 +35,9 @@ func (socket *Socket) String() string {
 }
 
 func (socket *Socket) Close() {
+	socket.closedMutex.Lock()
+	defer socket.closedMutex.Unlock()
+
 	if socket.closed {
 		return
 	}
@@ -42,6 +47,8 @@ func (socket *Socket) Close() {
 }
 
 func (socket *Socket) Read() (line string, err error) {
+	socket.closedMutex.RLock()
+	defer socket.closedMutex.RUnlock()
 	if socket.closed {
 		err = io.EOF
 		return
@@ -65,6 +72,8 @@ func (socket *Socket) Read() (line string, err error) {
 }
 
 func (socket *Socket) Write(line string) (err error) {
+	socket.closedMutex.RLock()
+	defer socket.closedMutex.RUnlock()
 	if socket.closed {
 		err = io.EOF
 		return

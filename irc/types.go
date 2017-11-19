@@ -3,12 +3,37 @@ package irc
 import (
 	"fmt"
 	"strings"
-	"sync"
+	//"sync"
+
+	sync "github.com/sasha-s/go-deadlock"
 )
 
 //
 // simple types
 //
+
+type Counter struct {
+	sync.RWMutex
+	value int
+}
+
+func (c *Counter) Inc() {
+	c.Lock()
+	defer c.Unlock()
+	c.value++
+}
+
+func (c *Counter) Dec() {
+	c.Lock()
+	defer c.Unlock()
+	c.value--
+}
+
+func (c *Counter) Value() int {
+	c.RLock()
+	defer c.RUnlock()
+	return c.value
+}
 
 // ChannelNameMap holds a mapping of channel names to *Channel structs
 // that is safe for concurrent readers and writers.
@@ -37,7 +62,7 @@ func (c *ChannelNameMap) Range(f func(kay Name, value *Channel) bool) {
 	defer c.Unlock()
 	for k, v := range c.channels {
 		if !f(k, v) {
-			break
+			return
 		}
 	}
 }
@@ -71,82 +96,206 @@ func (c *ChannelNameMap) Remove(channel *Channel) error {
 	return nil
 }
 
-type ChannelModeSet map[ChannelMode]bool
+// ChannelModeSet holds a mapping of channel modes
+type ChannelModeSet struct {
+	sync.RWMutex
+	modes map[ChannelMode]bool
+}
 
-func (set ChannelModeSet) String() string {
-	if len(set) == 0 {
+// NewChannelModeSet returns a new ChannelModeSet
+func NewChannelModeSet() *ChannelModeSet {
+	return &ChannelModeSet{modes: make(map[ChannelMode]bool)}
+}
+
+// Set sets mode
+func (set *ChannelModeSet) Set(mode ChannelMode) {
+	set.Lock()
+	defer set.Unlock()
+	set.modes[mode] = true
+}
+
+// Unset unsets mode
+func (set *ChannelModeSet) Unset(mode ChannelMode) {
+	set.Lock()
+	defer set.Unlock()
+	delete(set.modes, mode)
+}
+
+// Has returns true if the mode is set
+func (set *ChannelModeSet) Has(mode ChannelMode) bool {
+	set.RLock()
+	defer set.RUnlock()
+	ok, _ := set.modes[mode]
+	return ok
+}
+
+// Range ranges of the modes calling f
+func (set *ChannelModeSet) Range(f func(mode ChannelMode) bool) {
+	set.RLock()
+	defer set.RUnlock()
+	for mode := range set.modes {
+		if !f(mode) {
+			return
+		}
+	}
+}
+
+// String returns a string representing the channel modes
+func (set *ChannelModeSet) String() string {
+	set.RLock()
+	defer set.RUnlock()
+
+	if len(set.modes) == 0 {
 		return ""
 	}
-	strs := make([]string, len(set))
+	strs := make([]string, len(set.modes))
 	index := 0
-	for mode := range set {
+	for mode := range set.modes {
 		strs[index] = mode.String()
-		index += 1
+		index++
 	}
 	return strings.Join(strs, "")
 }
 
-type ClientSet map[*Client]bool
-
-func (clients ClientSet) Add(client *Client) {
-	clients[client] = true
+type ClientSet struct {
+	sync.RWMutex
+	clients map[*Client]bool
 }
 
-func (clients ClientSet) Remove(client *Client) {
-	delete(clients, client)
+func NewClientSet() *ClientSet {
+	return &ClientSet{clients: make(map[*Client]bool)}
 }
 
-func (clients ClientSet) Has(client *Client) bool {
-	return clients[client]
+func (set *ClientSet) Add(client *Client) {
+	set.Lock()
+	defer set.Unlock()
+	set.clients[client] = true
 }
 
-type MemberSet map[*Client]ChannelModeSet
-
-func (members MemberSet) Add(member *Client) {
-	members[member] = make(ChannelModeSet)
+func (set *ClientSet) Remove(client *Client) {
+	set.Lock()
+	defer set.Unlock()
+	delete(set.clients, client)
 }
 
-func (members MemberSet) Remove(member *Client) {
-	delete(members, member)
+func (set *ClientSet) Count() int {
+	set.RLock()
+	defer set.RUnlock()
+	return len(set.clients)
 }
 
-func (members MemberSet) Has(member *Client) bool {
-	_, ok := members[member]
+func (set *ClientSet) Has(client *Client) bool {
+	set.RLock()
+	defer set.RUnlock()
+	ok, _ := set.clients[client]
 	return ok
 }
 
-func (members MemberSet) HasMode(member *Client, mode ChannelMode) bool {
-	modes, ok := members[member]
+func (set *ClientSet) Range(f func(client *Client) bool) {
+	set.RLock()
+	defer set.RUnlock()
+	for client := range set.clients {
+		if !f(client) {
+			return
+		}
+	}
+}
+
+type MemberSet struct {
+	sync.RWMutex
+	members map[*Client]*ChannelModeSet
+}
+
+func NewMemberSet() *MemberSet {
+	return &MemberSet{members: make(map[*Client]*ChannelModeSet)}
+}
+
+func (set *MemberSet) Count() int {
+	set.RLock()
+	defer set.RUnlock()
+	return len(set.members)
+}
+
+func (set *MemberSet) Range(f func(client *Client, modes *ChannelModeSet) bool) {
+	set.RLock()
+	defer set.RUnlock()
+	for client, modes := range set.members {
+		if !f(client, modes) {
+			break
+		}
+	}
+}
+
+func (set *MemberSet) Add(member *Client) {
+	set.Lock()
+	defer set.Unlock()
+	set.members[member] = NewChannelModeSet()
+}
+
+func (set *MemberSet) Remove(member *Client) {
+	set.Lock()
+	defer set.Unlock()
+	delete(set.members, member)
+}
+
+func (set *MemberSet) Has(member *Client) bool {
+	set.RLock()
+	defer set.RUnlock()
+	_, ok := set.members[member]
+	return ok
+}
+
+func (set *MemberSet) Get(member *Client) *ChannelModeSet {
+	set.RLock()
+	defer set.RUnlock()
+	return set.members[member]
+}
+
+func (set *MemberSet) HasMode(member *Client, mode ChannelMode) bool {
+	set.RLock()
+	defer set.RUnlock()
+	modes, ok := set.members[member]
 	if !ok {
 		return false
 	}
-	return modes[mode]
+	return modes.Has(mode)
 }
 
-func (members MemberSet) AnyHasMode(mode ChannelMode) bool {
-	for _, modes := range members {
-		if modes[mode] {
-			return true
+type ChannelSet struct {
+	sync.RWMutex
+	channels map[*Channel]bool
+}
+
+func NewChannelSet() *ChannelSet {
+	return &ChannelSet{channels: make(map[*Channel]bool)}
+}
+
+func (set *ChannelSet) Count() int {
+	set.RLock()
+	defer set.RUnlock()
+	return len(set.channels)
+}
+
+func (set *ChannelSet) Add(channel *Channel) {
+	set.Lock()
+	defer set.Unlock()
+	set.channels[channel] = true
+}
+
+func (set *ChannelSet) Remove(channel *Channel) {
+	set.Lock()
+	defer set.Unlock()
+	delete(set.channels, channel)
+}
+
+func (set *ChannelSet) Range(f func(channel *Channel) bool) {
+	set.RLock()
+	defer set.RUnlock()
+	for channel := range set.channels {
+		if !f(channel) {
+			break
 		}
 	}
-	return false
-}
-
-type ChannelSet map[*Channel]bool
-
-func (channels ChannelSet) Add(channel *Channel) {
-	channels[channel] = true
-}
-
-func (channels ChannelSet) Remove(channel *Channel) {
-	delete(channels, channel)
-}
-
-func (channels ChannelSet) First() *Channel {
-	for channel := range channels {
-		return channel
-	}
-	return nil
 }
 
 //

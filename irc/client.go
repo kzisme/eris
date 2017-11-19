@@ -20,7 +20,7 @@ type Client struct {
 	awayMessage  Text
 	capabilities CapabilitySet
 	capState     CapState
-	channels     ChannelSet
+	channels     *ChannelSet
 	ctime        time.Time
 	flags        map[UserMode]bool
 	hasQuit      bool
@@ -34,7 +34,7 @@ type Client struct {
 	registered   bool
 	server       *Server
 	socket       *Socket
-	commands     chan Command
+	replies      chan string
 	username     Name
 }
 
@@ -45,12 +45,12 @@ func NewClient(server *Server, conn net.Conn) *Client {
 		authorized:   len(server.password) == 0,
 		capState:     CapNone,
 		capabilities: make(CapabilitySet),
-		channels:     make(ChannelSet),
+		channels:     NewChannelSet(),
 		ctime:        now,
 		flags:        make(map[UserMode]bool),
 		server:       server,
 		socket:       NewSocket(conn),
-		commands:     make(chan Command),
+		replies:      make(chan string),
 	}
 
 	if _, ok := conn.(*tls.Conn); ok {
@@ -59,7 +59,8 @@ func NewClient(server *Server, conn net.Conn) *Client {
 	}
 
 	client.Touch()
-	go client.run()
+	go client.writeloop()
+	go client.readloop()
 
 	return client
 }
@@ -68,7 +69,13 @@ func NewClient(server *Server, conn net.Conn) *Client {
 // command goroutine
 //
 
-func (client *Client) run() {
+func (client *Client) writeloop() {
+	for reply := range client.replies {
+		client.socket.Write(reply)
+	}
+}
+
+func (client *Client) readloop() {
 	var command Command
 	var err error
 	var line string
@@ -205,13 +212,14 @@ func (client *Client) Register() {
 func (client *Client) destroy() {
 	// clean up channels
 
-	for channel := range client.channels {
+	client.channels.Range(func(channel *Channel) bool {
 		channel.Quit(client)
-	}
+		return true
+	})
 
 	// clean up server
 
-	client.server.connections -= 1
+	client.server.connections.Dec()
 	client.server.clients.Remove(client)
 
 	// clean up self
@@ -299,14 +307,16 @@ func (c *Client) String() string {
 	return c.Id().String()
 }
 
-func (client *Client) Friends() ClientSet {
-	friends := make(ClientSet)
+func (client *Client) Friends() *ClientSet {
+	friends := NewClientSet()
 	friends.Add(client)
-	for channel := range client.channels {
-		for member := range channel.members {
+	client.channels.Range(func(channel *Channel) bool {
+		channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
 			friends.Add(member)
-		}
-	}
+			return true
+		})
+		return true
+	})
 	return friends
 }
 
@@ -326,13 +336,14 @@ func (client *Client) ChangeNickname(nickname Name) {
 	client.server.whoWas.Append(client)
 	client.nick = nickname
 	client.server.clients.Add(client)
-	for friend := range client.Friends() {
+	client.Friends().Range(func(friend *Client) bool {
 		friend.Reply(reply)
-	}
+		return true
+	})
 }
 
-func (client *Client) Reply(reply string) error {
-	return client.socket.Write(reply)
+func (client *Client) Reply(reply string) {
+	client.replies <- reply
 }
 
 func (client *Client) Quit(message Text) {
@@ -347,10 +358,11 @@ func (client *Client) Quit(message Text) {
 	friends.Remove(client)
 	client.destroy()
 
-	if len(friends) > 0 {
+	if friends.Count() > 0 {
 		reply := RplQuit(client, message)
-		for friend := range friends {
+		friends.Range(func(friend *Client) bool {
 			friend.Reply(reply)
-		}
+			return true
+		})
 	}
 }

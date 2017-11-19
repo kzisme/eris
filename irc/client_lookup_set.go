@@ -4,7 +4,9 @@ import (
 	"errors"
 	"regexp"
 	"strings"
-	"sync"
+	//"sync"
+
+	sync "github.com/sasha-s/go-deadlock"
 
 	"github.com/DanielOaks/girc-go/ircmatch"
 )
@@ -29,12 +31,12 @@ func ExpandUserHost(userhost Name) (expanded Name) {
 
 type ClientLookupSet struct {
 	sync.RWMutex
-	byNick map[Name]*Client
+	nicks map[Name]*Client
 }
 
 func NewClientLookupSet() *ClientLookupSet {
 	return &ClientLookupSet{
-		byNick: make(map[Name]*Client),
+		nicks: make(map[Name]*Client),
 	}
 }
 
@@ -42,14 +44,14 @@ func (clients *ClientLookupSet) Count() int {
 	clients.RLock()
 	defer clients.RUnlock()
 
-	return len(clients.byNick)
+	return len(clients.nicks)
 }
 
 func (clients *ClientLookupSet) Get(nick Name) *Client {
 	clients.RLock()
 	defer clients.RUnlock()
 
-	return clients.byNick[nick.ToLower()]
+	return clients.nicks[nick.ToLower()]
 }
 
 func (clients *ClientLookupSet) Add(client *Client) error {
@@ -63,7 +65,7 @@ func (clients *ClientLookupSet) Add(client *Client) error {
 	clients.Lock()
 	defer clients.Unlock()
 
-	clients.byNick[client.Nick().ToLower()] = client
+	clients.nicks[client.Nick().ToLower()] = client
 	return nil
 }
 
@@ -78,21 +80,31 @@ func (clients *ClientLookupSet) Remove(client *Client) error {
 	clients.Lock()
 	defer clients.Unlock()
 
-	delete(clients.byNick, client.nick.ToLower())
+	delete(clients.nicks, client.nick.ToLower())
 	return nil
 }
 
-func (clients *ClientLookupSet) FindAll(userhost Name) (set ClientSet) {
+func (clients *ClientLookupSet) Range(f func(nick Name, client *Client) bool) {
+	clients.RLock()
+	defer clients.RUnlock()
+	for nick, client := range clients.nicks {
+		if !f(nick, client) {
+			return
+		}
+	}
+}
+
+func (clients *ClientLookupSet) FindAll(userhost Name) *ClientSet {
 	clients.RLock()
 	defer clients.RUnlock()
 
-	set = make(ClientSet)
+	set := NewClientSet()
 
 	userhost = ExpandUserHost(userhost)
 	matcher := ircmatch.MakeMatch(userhost.String())
 
 	var casemappedNickMask string
-	for _, client := range clients.byNick {
+	for _, client := range clients.nicks {
 		casemappedNickMask = client.UserHost().String()
 		if matcher.Match(casemappedNickMask) {
 			set.Add(client)
@@ -110,7 +122,7 @@ func (clients *ClientLookupSet) Find(userhost Name) *Client {
 	matcher := ircmatch.MakeMatch(userhost.String())
 
 	var casemappedNickMask string
-	for _, client := range clients.byNick {
+	for _, client := range clients.nicks {
 		casemappedNickMask = client.UserHost().String()
 		if matcher.Match(casemappedNickMask) {
 			return client

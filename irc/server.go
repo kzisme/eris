@@ -29,7 +29,7 @@ type Server struct {
 	config      *Config
 	metrics     *Metrics
 	channels    *ChannelNameMap
-	connections int
+	connections *Counter
 	clients     *ClientLookupSet
 	ctime       time.Time
 	idle        chan *Client
@@ -53,6 +53,7 @@ func NewServer(config *Config) *Server {
 		config:      config,
 		metrics:     NewMetrics("eris"),
 		channels:    NewChannelNameMap(),
+		connections: &Counter{},
 		clients:     NewClientLookupSet(),
 		ctime:       time.Now(),
 		idle:        make(chan *Client),
@@ -105,7 +106,7 @@ func NewServer(config *Config) *Server {
 		"server", "connections",
 		"Number of active connections to the server",
 		func() float64 {
-			return float64(server.connections)
+			return float64(server.connections.Value())
 		},
 	)
 
@@ -146,21 +147,31 @@ func NewServer(config *Config) *Server {
 }
 
 func (server *Server) Wallops(message string) {
-	for _, client := range server.clients.byNick {
+	server.clients.Range(func(_ Name, client *Client) bool {
 		if client.flags[WallOps] {
-			client.Reply(RplNotice(server, client, NewText(message)))
+			client.replies <- RplNotice(server, client, NewText(message))
 		}
-	}
+		return true
+	})
 }
 
 func (server *Server) Wallopsf(format string, args ...interface{}) {
 	server.Wallops(fmt.Sprintf(format, args...))
 }
 
+func (server *Server) Announce(message string) {
+	server.clients.Range(func(_ Name, client *Client) bool {
+		client.replies <- RplNotice(server, client, NewText(message))
+		return true
+	})
+}
+
+func (server *Server) Announcef(format string, args ...interface{}) {
+	server.Announce(fmt.Sprintf(format, args...))
+}
+
 func (server *Server) Shutdown() {
-	for _, client := range server.clients.byNick {
-		client.Reply(RplNotice(server, client, "shutting down"))
-	}
+	server.Announce("shutting down...")
 }
 
 func (server *Server) Run() {
@@ -189,7 +200,7 @@ func (s *Server) acceptor(listener net.Listener) {
 		}
 		log.Debugf("%s accept: %s", s, conn.RemoteAddr())
 
-		s.connections += 1
+		s.connections.Inc()
 		s.newConns <- conn
 	}
 }
@@ -400,9 +411,10 @@ func (m *JoinCommand) HandleServer(s *Server) {
 	client := m.Client()
 
 	if m.zero {
-		for channel := range client.channels {
+		client.channels.Range(func(channel *Channel) bool {
 			channel.Part(client, client.Nick().Text())
-		}
+			return true
+		})
 		return
 	}
 
@@ -479,21 +491,22 @@ func (msg *PrivMsgCommand) HandleServer(server *Server) {
 }
 
 func (client *Client) WhoisChannelsNames() []string {
-	chstrs := make([]string, len(client.channels))
+	chstrs := make([]string, client.channels.Count())
 	index := 0
-	for channel := range client.channels {
+	client.channels.Range(func(channel *Channel) bool {
 		switch {
-		case channel.members[client][ChannelOperator]:
+		case channel.members.Get(client).Has(ChannelOperator):
 			chstrs[index] = "@" + channel.name.String()
 
-		case channel.members[client][Voice]:
+		case channel.members.Get(client).Has(Voice):
 			chstrs[index] = "+" + channel.name.String()
 
 		default:
 			chstrs[index] = channel.name.String()
 		}
-		index += 1
-	}
+		index++
+		return true
+	})
 	return chstrs
 }
 
@@ -504,22 +517,24 @@ func (m *WhoisCommand) HandleServer(server *Server) {
 
 	for _, mask := range m.masks {
 		matches := server.clients.FindAll(mask)
-		if len(matches) == 0 {
+		if matches.Count() == 0 {
 			client.ErrNoSuchNick(mask)
 			continue
 		}
-		for mclient := range matches {
+		matches.Range(func(mclient *Client) bool {
 			client.RplWhois(mclient)
-		}
+			return true
+		})
 	}
 }
 
-func whoChannel(client *Client, channel *Channel, friends ClientSet) {
-	for member := range channel.members {
-		if !client.flags[Invisible] || friends[client] {
+func whoChannel(client *Client, channel *Channel, friends *ClientSet) {
+	channel.members.Range(func(member *Client, _ *ChannelModeSet) bool {
+		if !client.flags[Invisible] || friends.Has(client) {
 			client.RplWhoReply(channel, member)
 		}
-	}
+		return true
+	})
 }
 
 func (msg *WhoCommand) HandleServer(server *Server) {
@@ -539,9 +554,11 @@ func (msg *WhoCommand) HandleServer(server *Server) {
 			whoChannel(client, channel, friends)
 		}
 	} else {
-		for mclient := range server.clients.FindAll(mask) {
+		matches := server.clients.FindAll(mask)
+		matches.Range(func(mclient *Client) bool {
 			client.RplWhoReply(nil, mclient)
-		}
+			return true
+		})
 	}
 
 	client.RplEndOfWho(mask)
@@ -671,7 +688,7 @@ func (msg *ListCommand) HandleServer(server *Server) {
 
 	if len(msg.channels) == 0 {
 		server.channels.Range(func(name Name, channel *Channel) bool {
-			if !client.flags[Operator] && channel.flags[Private] {
+			if !client.flags[Operator] && channel.flags.Has(Private) {
 				return true
 			}
 			client.RplList(channel)
@@ -680,7 +697,7 @@ func (msg *ListCommand) HandleServer(server *Server) {
 	} else {
 		for _, chname := range msg.channels {
 			channel := server.channels.Get(chname)
-			if channel == nil || (!client.flags[Operator] && channel.flags[Private]) {
+			if channel == nil || (!client.flags[Operator] && channel.flags.Has(Private)) {
 				client.ErrNoSuchChannel(chname)
 				continue
 			}
