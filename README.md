@@ -53,16 +53,18 @@ $ eris --help
 ## Configuration
 
 See the example [ircd.yml](ircd.yml). Passwords are base64-encoded
-bcrypted byte strings. You can generate them with the `genpasswd` subcommand.
+bcrypted byte strings. You can generate them with the `mkpasswd` tool
+from [prologic/mkpasswd](https://github.com/prologic/mkpasswd):
 
 ```#!bash
-$ eris genpasswd
+$ go install github.com/prologic/mkpasswd
+$ mkpasswd
 ```
 
 ## Running the server
 
 ```#!bash
-$ eris run
+$ eris
 ```
 
 ## License
