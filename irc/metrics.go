@@ -10,6 +10,13 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+var DefObjectives = map[float64]float64{
+	0.50: 0.05,
+	0.90: 0.01,
+	0.95: 0.005,
+	0.99: 0.001,
+}
+
 type Metrics struct {
 	namespace string
 	metrics   map[string]prometheus.Metric
@@ -101,7 +108,7 @@ func (m *Metrics) NewSummary(subsystem, name, help string) prometheus.Summary {
 			Subsystem:  subsystem,
 			Name:       name,
 			Help:       help,
-			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+			Objectives: DefObjectives,
 		},
 	)
 
@@ -119,7 +126,7 @@ func (m *Metrics) NewSummaryVec(subsystem, name, help string, labels []string) *
 			Subsystem:  subsystem,
 			Name:       name,
 			Help:       help,
-			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+			Objectives: DefObjectives,
 		},
 		labels,
 	)
