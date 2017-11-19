@@ -692,7 +692,7 @@ func (msg *ListCommand) HandleServer(server *Server) {
 				return true
 			}
 			client.RplList(channel)
-			return false
+			return true
 		})
 	} else {
 		for _, chname := range msg.channels {
