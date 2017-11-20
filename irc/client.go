@@ -32,6 +32,7 @@ type Client struct {
 	quitTimer    *time.Timer
 	realname     Text
 	registered   bool
+	sasl         *SaslState
 	server       *Server
 	socket       *Socket
 	replies      chan string
@@ -48,6 +49,7 @@ func NewClient(server *Server, conn net.Conn) *Client {
 		channels:     NewChannelSet(),
 		ctime:        now,
 		flags:        make(map[UserMode]bool),
+		sasl:         NewSaslState(),
 		server:       server,
 		socket:       NewSocket(conn),
 		replies:      make(chan string),

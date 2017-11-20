@@ -29,3 +29,10 @@ operator:
    # password to login with /OPER command
    # generated using  "ircd genpasswd"
    password: JDJhJDA0JE1vZmwxZC9YTXBhZ3RWT2xBbkNwZnV3R2N6VFUwQUI0RUJRVXRBRHliZVVoa0VYMnlIaGsu
+
+# accounts (SASL)
+account:
+  # username 'admin'
+  admin:
+   # password 'admin'
+   password: JDJhJDA0JGtUU1JVc1JOUy9DbEh1WEdvYVlMdGVnclp6YnA3NDBOZGY1WUZhdTZtRzVmb1VKdXQ5ckZD

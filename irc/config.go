@@ -44,6 +44,7 @@ type Config struct {
 	}
 
 	Operator map[string]*PassConfig
+	Account  map[string]*PassConfig
 }
 
 func (conf *Config) Operators() map[Name][]byte {
@@ -52,6 +53,14 @@ func (conf *Config) Operators() map[Name][]byte {
 		operators[NewName(name)] = opConf.PasswordBytes()
 	}
 	return operators
+}
+
+func (conf *Config) Accounts() map[Name][]byte {
+	accounts := make(map[Name][]byte)
+	for name, accConf := range conf.Account {
+		accounts[NewName(name)] = accConf.PasswordBytes()
+	}
+	return accounts
 }
 
 func (conf *Config) Name() string {

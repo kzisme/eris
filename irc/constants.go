@@ -5,38 +5,39 @@ const (
 	MAX_REPLY_LEN = 512 - len(CRLF)
 
 	// string codes
-	AWAY    StringCode = "AWAY"
-	CAP     StringCode = "CAP"
-	ERROR   StringCode = "ERROR"
-	INVITE  StringCode = "INVITE"
-	ISON    StringCode = "ISON"
-	JOIN    StringCode = "JOIN"
-	KICK    StringCode = "KICK"
-	KILL    StringCode = "KILL"
-	LIST    StringCode = "LIST"
-	MODE    StringCode = "MODE"
-	MOTD    StringCode = "MOTD"
-	NAMES   StringCode = "NAMES"
-	NICK    StringCode = "NICK"
-	NOTICE  StringCode = "NOTICE"
-	ONICK   StringCode = "ONICK"
-	OPER    StringCode = "OPER"
-	REHASH  StringCode = "REHASH"
-	PART    StringCode = "PART"
-	PASS    StringCode = "PASS"
-	PING    StringCode = "PING"
-	PONG    StringCode = "PONG"
-	PRIVMSG StringCode = "PRIVMSG"
-	QUIT    StringCode = "QUIT"
-	TIME    StringCode = "TIME"
-	LUSERS  StringCode = "LUSERS"
-	TOPIC   StringCode = "TOPIC"
-	USER    StringCode = "USER"
-	VERSION StringCode = "VERSION"
-	WALLOPS StringCode = "WALLOPS"
-	WHO     StringCode = "WHO"
-	WHOIS   StringCode = "WHOIS"
-	WHOWAS  StringCode = "WHOWAS"
+	AUTHENTICATE StringCode = "AUTHENTICATE" // SASL
+	AWAY         StringCode = "AWAY"
+	CAP          StringCode = "CAP"
+	ERROR        StringCode = "ERROR"
+	INVITE       StringCode = "INVITE"
+	ISON         StringCode = "ISON"
+	JOIN         StringCode = "JOIN"
+	KICK         StringCode = "KICK"
+	KILL         StringCode = "KILL"
+	LIST         StringCode = "LIST"
+	MODE         StringCode = "MODE"
+	MOTD         StringCode = "MOTD"
+	NAMES        StringCode = "NAMES"
+	NICK         StringCode = "NICK"
+	NOTICE       StringCode = "NOTICE"
+	ONICK        StringCode = "ONICK"
+	OPER         StringCode = "OPER"
+	REHASH       StringCode = "REHASH"
+	PART         StringCode = "PART"
+	PASS         StringCode = "PASS"
+	PING         StringCode = "PING"
+	PONG         StringCode = "PONG"
+	PRIVMSG      StringCode = "PRIVMSG"
+	QUIT         StringCode = "QUIT"
+	TIME         StringCode = "TIME"
+	LUSERS       StringCode = "LUSERS"
+	TOPIC        StringCode = "TOPIC"
+	USER         StringCode = "USER"
+	VERSION      StringCode = "VERSION"
+	WALLOPS      StringCode = "WALLOPS"
+	WHO          StringCode = "WHO"
+	WHOIS        StringCode = "WHOIS"
+	WHOWAS       StringCode = "WHOWAS"
 
 	// numeric codes
 	RPL_WELCOME           NumericCode = 1
@@ -178,4 +179,15 @@ const (
 	ERR_UMODEUNKNOWNFLAG  NumericCode = 501
 	ERR_USERSDONTMATCH    NumericCode = 502
 	RPL_WHOISSECURE       NumericCode = 671
+
+	// SASL
+	RPL_LOGGEDIN    NumericCode = 900
+	RPL_LOGGEDOUT   NumericCode = 901
+	ERR_NICKLOCKED  NumericCode = 902
+	RPL_SASLSUCCESS NumericCode = 903
+	ERR_SASLFAIL    NumericCode = 904
+	ERR_SASLTOOLONG NumericCode = 905
+	ERR_SASLABORTED NumericCode = 906
+	ERR_SASLALREADY NumericCode = 907
+	RPL_SASLMECHS   NumericCode = 908
 )

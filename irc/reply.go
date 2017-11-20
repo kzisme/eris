@@ -710,3 +710,84 @@ func (target *Client) ErrInviteOnlyChan(channel *Channel) {
 	target.NumericReply(ERR_INVITEONLYCHAN,
 		"%s :Cannot join channel (+i)", channel)
 }
+
+//
+// SASL Errors / Replies
+//
+
+func RplAuthenticate(client *Client, arg string) string {
+	return NewStringReply(client.server, AUTHENTICATE, arg)
+}
+
+func (target *Client) RplLoggedIn(authcid string) {
+	target.NumericReply(
+		RPL_LOGGEDIN,
+		"%s %s :You are now logged in as %s",
+		target, authcid, authcid,
+	)
+}
+
+func (target *Client) RplLoggedOut() {
+	target.NumericReply(
+		RPL_LOGGEDIN,
+		"%s :You are now logged out",
+		target,
+	)
+}
+
+func (target *Client) ErrNickLocked() {
+	target.NumericReply(
+		ERR_NICKLOCKED,
+		"%s :You must use a nick assigned to you",
+		target.Nick(),
+	)
+}
+
+func (target *Client) RplSaslSuccess() {
+	target.NumericReply(
+		RPL_SASLSUCCESS,
+		"%s :SASL authentication successful",
+		target.Nick(),
+	)
+}
+
+func (target *Client) ErrSaslFail(message string) {
+	target.NumericReply(
+		ERR_SASLFAIL,
+		"%s :SASL authentication failed: %s",
+		target.Nick(), message,
+	)
+}
+
+func (target *Client) ErrSaslTooLong() {
+	target.NumericReply(
+		ERR_SASLFAIL,
+		"%s :SASL message too long",
+		target.Nick(),
+	)
+}
+
+func (target *Client) ErrSaslAborted() {
+	target.NumericReply(
+		ERR_SASLABORTED,
+		"%s :SASL authentication aborted",
+		target.Nick(),
+	)
+}
+
+func (target *Client) ErrSaslAlready() {
+	target.NumericReply(
+		ERR_SASLALREADY,
+		"%s :You have already authenticated using SASL",
+		target.Nick(),
+	)
+}
+
+func (target *Client) RplSaslMechs(mechs ...string) {
+	target.NumericReply(
+		RPL_SASLMECHS,
+		"%s %s :are available SASL mechanisms",
+		target.Nick(),
+		strings.Join(mechs, ","),
+	)
+}

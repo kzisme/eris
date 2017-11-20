@@ -26,37 +26,38 @@ var (
 	NotEnoughArgsError = errors.New("not enough arguments")
 	ErrParseCommand    = errors.New("failed to parse message")
 	parseCommandFuncs  = map[StringCode]parseCommandFunc{
-		AWAY:    ParseAwayCommand,
-		CAP:     ParseCapCommand,
-		INVITE:  ParseInviteCommand,
-		ISON:    ParseIsOnCommand,
-		JOIN:    ParseJoinCommand,
-		KICK:    ParseKickCommand,
-		KILL:    ParseKillCommand,
-		LIST:    ParseListCommand,
-		MODE:    ParseModeCommand,
-		MOTD:    ParseMOTDCommand,
-		NAMES:   ParseNamesCommand,
-		NICK:    ParseNickCommand,
-		NOTICE:  ParseNoticeCommand,
-		ONICK:   ParseOperNickCommand,
-		OPER:    ParseOperCommand,
-		REHASH:  ParseRehashCommand,
-		PART:    ParsePartCommand,
-		PASS:    ParsePassCommand,
-		PING:    ParsePingCommand,
-		PONG:    ParsePongCommand,
-		PRIVMSG: ParsePrivMsgCommand,
-		QUIT:    ParseQuitCommand,
-		TIME:    ParseTimeCommand,
-		LUSERS:  ParseLUsersCommand,
-		TOPIC:   ParseTopicCommand,
-		USER:    ParseUserCommand,
-		VERSION: ParseVersionCommand,
-		WALLOPS: ParseWallopsCommand,
-		WHO:     ParseWhoCommand,
-		WHOIS:   ParseWhoisCommand,
-		WHOWAS:  ParseWhoWasCommand,
+		AUTHENTICATE: ParseAuthenticateCommand,
+		AWAY:         ParseAwayCommand,
+		CAP:          ParseCapCommand,
+		INVITE:       ParseInviteCommand,
+		ISON:         ParseIsOnCommand,
+		JOIN:         ParseJoinCommand,
+		KICK:         ParseKickCommand,
+		KILL:         ParseKillCommand,
+		LIST:         ParseListCommand,
+		MODE:         ParseModeCommand,
+		MOTD:         ParseMOTDCommand,
+		NAMES:        ParseNamesCommand,
+		NICK:         ParseNickCommand,
+		NOTICE:       ParseNoticeCommand,
+		ONICK:        ParseOperNickCommand,
+		OPER:         ParseOperCommand,
+		REHASH:       ParseRehashCommand,
+		PART:         ParsePartCommand,
+		PASS:         ParsePassCommand,
+		PING:         ParsePingCommand,
+		PONG:         ParsePongCommand,
+		PRIVMSG:      ParsePrivMsgCommand,
+		QUIT:         ParseQuitCommand,
+		TIME:         ParseTimeCommand,
+		LUSERS:       ParseLUsersCommand,
+		TOPIC:        ParseTopicCommand,
+		USER:         ParseUserCommand,
+		VERSION:      ParseVersionCommand,
+		WALLOPS:      ParseWallopsCommand,
+		WHO:          ParseWhoCommand,
+		WHOIS:        ParseWhoisCommand,
+		WHOWAS:       ParseWhoWasCommand,
 	}
 )
 
@@ -181,6 +182,22 @@ func ParsePongCommand(args []string) (Command, error) {
 		message.server2 = NewName(args[1])
 	}
 	return message, nil
+}
+
+// AUTHENTICATE <arg>
+
+type AuthenticateCommand struct {
+	BaseCommand
+	arg string
+}
+
+func ParseAuthenticateCommand(args []string) (Command, error) {
+	if len(args) < 1 {
+		return nil, NotEnoughArgsError
+	}
+	return &AuthenticateCommand{
+		arg: args[0],
+	}, nil
 }
 
 // PASS <password>

@@ -27,6 +27,7 @@ const (
 var (
 	SupportedCapabilities = CapabilitySet{
 		MultiPrefix: true,
+		SASL:        true,
 	}
 )
 

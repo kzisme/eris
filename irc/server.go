@@ -2,8 +2,10 @@ package irc
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/rand"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"net"
 	"os"
@@ -38,6 +40,7 @@ type Server struct {
 	description string
 	newConns    chan net.Conn
 	operators   map[Name][]byte
+	accounts    map[Name][]byte
 	password    []byte
 	signals     chan os.Signal
 	whoWas      *WhoWasList
@@ -63,6 +66,7 @@ func NewServer(config *Config) *Server {
 		description: config.Server.Description,
 		newConns:    make(chan net.Conn),
 		operators:   config.Operators(),
+		accounts:    config.Accounts(),
 		signals:     make(chan os.Signal, len(SERVER_SIGNALS)),
 		whoWas:      NewWhoWasList(100),
 		ids:         make(map[string]*Identity),
@@ -374,6 +378,84 @@ func (msg *RFC2812UserCommand) HandleRegServer(server *Server) {
 		client.RplUModeIs(client)
 	}
 	msg.setUserInfo(server)
+}
+
+func (msg *AuthenticateCommand) HandleRegServer(server *Server) {
+	client := msg.Client()
+	if !client.authorized {
+		client.ErrPasswdMismatch()
+		client.Quit("bad password")
+		return
+	}
+
+	if msg.arg == "*" {
+		client.ErrSaslAborted()
+		return
+	}
+
+	if !client.sasl.Started() {
+		if msg.arg == "PLAIN" {
+			client.sasl.Start()
+			client.Reply(RplAuthenticate(client, "+"))
+		} else {
+			client.RplSaslMechs("PLAIN")
+		}
+		return
+	}
+
+	if len(msg.arg) > 400 {
+		client.ErrSaslTooLong()
+		return
+	}
+
+	client.sasl.WriteString(msg.arg)
+
+	data, err := base64.StdEncoding.DecodeString(client.sasl.String())
+	if err != nil {
+		client.ErrSaslFail("Invalid base64 encoding")
+		client.sasl.Reset()
+		return
+	}
+
+	// Do authentication
+
+	var (
+		authcid string
+		authzid string
+		passwd  string
+	)
+
+	tokens := bytes.Split(data, []byte{'\000'})
+	log.Debugf("tokens: %v", tokens)
+	if len(tokens) == 3 {
+		authcid = string(tokens[0])
+		authzid = string(tokens[1])
+		passwd = string(tokens[2])
+
+		if authcid == "" {
+			authcid = authzid
+		} else if authcid != authzid {
+			client.ErrSaslFail("authcid and authzid should be the same")
+			return
+		}
+	} else {
+		client.ErrSaslFail("invalid authentication blob")
+		return
+	}
+
+	hash := server.accounts[NewName(authcid)]
+	if hash == nil {
+		client.ErrSaslFail("invalid authentication")
+		return
+	}
+	err = ComparePassword(hash, []byte(passwd))
+	if err != nil {
+		client.ErrSaslFail("authentication failed")
+		return
+	}
+
+	client.sasl.Login(authcid)
+	client.RplSaslSuccess()
 }
 
 func (msg *UserCommand) setUserInfo(server *Server) {
