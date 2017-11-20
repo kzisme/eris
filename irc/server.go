@@ -399,6 +399,7 @@ func (msg *AuthenticateCommand) HandleRegServer(server *Server) {
 			client.Reply(RplAuthenticate(client, "+"))
 		} else {
 			client.RplSaslMechs("PLAIN")
+			client.ErrSaslFail("Unknown authentication mechanism")
 		}
 		return
 	}
@@ -408,7 +409,14 @@ func (msg *AuthenticateCommand) HandleRegServer(server *Server) {
 		return
 	}
 
-	client.sasl.WriteString(msg.arg)
+	if len(msg.arg) == 400 {
+		client.sasl.WriteString(msg.arg)
+		return
+	}
+
+	if msg.arg != "+" {
+		client.sasl.WriteString(msg.arg)
+	}
 
 	data, err := base64.StdEncoding.DecodeString(client.sasl.String())
 	if err != nil {
@@ -432,10 +440,10 @@ func (msg *AuthenticateCommand) HandleRegServer(server *Server) {
 		authzid = string(tokens[1])
 		passwd = string(tokens[2])
 
-		if authcid == "" {
-			authcid = authzid
-		} else if authcid != authzid {
-			client.ErrSaslFail("authcid and authzid should be the same")
+		if authzid == "" {
+			authzid = authcid
+		} else if authzid != authcid {
+			client.ErrSaslFail("authzid and authcid should be the same")
 			return
 		}
 	} else {
