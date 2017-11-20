@@ -33,6 +33,7 @@ const (
 	TOPIC   StringCode = "TOPIC"
 	USER    StringCode = "USER"
 	VERSION StringCode = "VERSION"
+	WALLOPS StringCode = "WALLOPS"
 	WHO     StringCode = "WHO"
 	WHOIS   StringCode = "WHOIS"
 	WHOWAS  StringCode = "WHOWAS"

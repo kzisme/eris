@@ -41,6 +41,7 @@ type Server struct {
 	password    []byte
 	signals     chan os.Signal
 	whoWas      *WhoWasList
+	ids         map[string]*Identity
 }
 
 var (
@@ -64,7 +65,11 @@ func NewServer(config *Config) *Server {
 		operators:   config.Operators(),
 		signals:     make(chan os.Signal, len(SERVER_SIGNALS)),
 		whoWas:      NewWhoWasList(100),
+		ids:         make(map[string]*Identity),
 	}
+
+	// TODO: Make this configurabel?
+	server.ids["global"] = NewIdentity(config.Server.Name, "global")
 
 	if config.Server.Password != "" {
 		server.password = config.Server.PasswordBytes()
@@ -147,9 +152,11 @@ func NewServer(config *Config) *Server {
 }
 
 func (server *Server) Wallops(message string) {
+	text := NewText(message)
 	server.clients.Range(func(_ Name, client *Client) bool {
 		if client.flags[WallOps] {
-			client.replies <- RplNotice(server, client, NewText(message))
+			server.metrics.Counter("client", "messages").Inc()
+			client.replies <- RplNotice(server, client, text)
 		}
 		return true
 	})
@@ -159,19 +166,21 @@ func (server *Server) Wallopsf(format string, args ...interface{}) {
 	server.Wallops(fmt.Sprintf(format, args...))
 }
 
-func (server *Server) Announce(message string) {
+func (server *Server) Global(message string) {
+	text := NewText(message)
 	server.clients.Range(func(_ Name, client *Client) bool {
-		client.replies <- RplNotice(server, client, NewText(message))
+		server.metrics.Counter("client", "messages").Inc()
+		client.replies <- RplNotice(server.ids["global"], client, text)
 		return true
 	})
 }
 
-func (server *Server) Announcef(format string, args ...interface{}) {
-	server.Announce(fmt.Sprintf(format, args...))
+func (server *Server) Globalf(format string, args ...interface{}) {
+	server.Global(fmt.Sprintf(format, args...))
 }
 
 func (server *Server) Shutdown() {
-	server.Announce("shutting down...")
+	server.Global("shutting down...")
 }
 
 func (server *Server) Run() {
@@ -462,7 +471,6 @@ func (msg *TopicCommand) HandleServer(server *Server) {
 }
 
 func (msg *PrivMsgCommand) HandleServer(server *Server) {
-	server.metrics.Counter("client", "messages").Inc()
 	client := msg.Client()
 	if msg.target.IsChannel() {
 		channel := server.channels.Get(msg.target)
@@ -484,6 +492,7 @@ func (msg *PrivMsgCommand) HandleServer(server *Server) {
 		client.ErrCannotSendToUser(target.nick, "secure connection required")
 		return
 	}
+	server.metrics.Counter("client", "messages").Inc()
 	target.Reply(RplPrivMsg(client, target, msg.message))
 	if target.flags[Away] {
 		client.RplAway(target)
@@ -573,11 +582,17 @@ func (msg *OperCommand) HandleServer(server *Server) {
 	}
 
 	client.flags[Operator] = true
+	client.flags[WallOps] = true
 	client.RplYoureOper()
-	client.Reply(RplModeChanges(client, client, ModeChanges{&ModeChange{
-		mode: Operator,
-		op:   Add,
-	}}))
+	client.Reply(
+		RplModeChanges(
+			client, client,
+			ModeChanges{
+				&ModeChange{mode: Operator, op: Add},
+				&ModeChange{mode: WallOps, op: Add},
+			},
+		),
+	)
 }
 
 func (msg *RehashCommand) HandleServer(server *Server) {
@@ -632,8 +647,13 @@ func (msg *MOTDCommand) HandleServer(server *Server) {
 }
 
 func (msg *NoticeCommand) HandleServer(server *Server) {
-	server.metrics.Counter("client", "messages").Inc()
 	client := msg.Client()
+
+	if msg.target == "*" && client.flags[Operator] {
+		server.Global(msg.message.String())
+		return
+	}
+
 	if msg.target.IsChannel() {
 		channel := server.channels.Get(msg.target)
 		if channel == nil {
@@ -655,6 +675,7 @@ func (msg *NoticeCommand) HandleServer(server *Server) {
 		client.ErrCannotSendToUser(target.nick, "secure connection required")
 		return
 	}
+	server.metrics.Counter("client", "messages").Inc()
 	target.Reply(RplNotice(client, target, msg.message))
 }
 
@@ -773,6 +794,16 @@ func (msg *LUsersCommand) HandleServer(server *Server) {
 	client.RplLUserUnknown()
 	client.RplLUserChannels()
 	client.RplLUserMe()
+}
+
+func (msg *WallopsCommand) HandleServer(server *Server) {
+	client := msg.Client()
+	if !client.flags[Operator] {
+		client.ErrNoPrivileges()
+		return
+	}
+
+	server.Wallops(msg.message.String())
 }
 
 func (msg *KillCommand) HandleServer(server *Server) {

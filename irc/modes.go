@@ -51,15 +51,12 @@ const (
 )
 
 const (
-	Away          UserMode = 'a' // not a real user mode (flag)
-	Invisible     UserMode = 'i'
-	LocalOperator UserMode = 'O'
-	Operator      UserMode = 'o'
-	Restricted    UserMode = 'r'
-	ServerNotice  UserMode = 's' // deprecated
-	WallOps       UserMode = 'w'
-	SecureConn    UserMode = 'z'
-	SecureOnly    UserMode = 'Z'
+	Away       UserMode = 'a' // not a real user mode (flag)
+	Invisible  UserMode = 'i'
+	Operator   UserMode = 'o'
+	WallOps    UserMode = 'w'
+	SecureConn UserMode = 'z'
+	SecureOnly UserMode = 'Z'
 )
 
 var (
@@ -120,7 +117,7 @@ func (m *ModeCommand) HandleServer(s *Server) {
 
 	for _, change := range m.changes {
 		switch change.mode {
-		case Invisible, ServerNotice, WallOps, SecureOnly:
+		case Invisible, WallOps, SecureOnly:
 			switch change.op {
 			case Add:
 				if target.flags[change.mode] {
@@ -137,7 +134,7 @@ func (m *ModeCommand) HandleServer(s *Server) {
 				changes = append(changes, change)
 			}
 
-		case Operator, LocalOperator:
+		case Operator:
 			if change.op == Remove {
 				if !target.flags[change.mode] {
 					continue

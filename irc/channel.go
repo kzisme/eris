@@ -257,6 +257,7 @@ func (channel *Channel) PrivMsg(client *Client, message Text) {
 		if member == client {
 			return true
 		}
+		client.server.metrics.Counter("client", "messages").Inc()
 		member.Reply(reply)
 		return true
 	})
@@ -453,6 +454,7 @@ func (channel *Channel) Notice(client *Client, message Text) {
 		if member == client {
 			return true
 		}
+		client.server.metrics.Counter("client", "messages").Inc()
 		member.Reply(reply)
 		return true
 	})

@@ -298,6 +298,39 @@ func (set *ChannelSet) Range(f func(channel *Channel) bool) {
 	}
 }
 
+type Identity struct {
+	nickname string
+	username string
+	hostname string
+}
+
+func NewIdentity(hostname string, args ...string) *Identity {
+	id := &Identity{hostname: hostname}
+
+	if len(args) > 0 {
+		id.nickname = args[0]
+	}
+	if len(args) > 2 {
+		id.username = args[1]
+	} else {
+		id.username = id.nickname
+	}
+
+	return id
+}
+
+func (id *Identity) Id() Name {
+	return NewName(id.username)
+}
+
+func (id *Identity) Nick() Name {
+	return NewName(id.nickname)
+}
+
+func (id *Identity) String() string {
+	return fmt.Sprintf("%s!%s@%s", id.nickname, id.username, id.hostname)
+}
+
 //
 // interfaces
 //

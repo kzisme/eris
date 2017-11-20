@@ -53,6 +53,7 @@ var (
 		TOPIC:   ParseTopicCommand,
 		USER:    ParseUserCommand,
 		VERSION: ParseVersionCommand,
+		WALLOPS: ParseWallopsCommand,
 		WHO:     ParseWhoCommand,
 		WHOIS:   ParseWhoisCommand,
 		WHOWAS:  ParseWhoWasCommand,
@@ -872,6 +873,20 @@ func ParseKillCommand(args []string) (Command, error) {
 	return &KillCommand{
 		nickname: NewName(args[0]),
 		comment:  NewText(args[1]),
+	}, nil
+}
+
+type WallopsCommand struct {
+	BaseCommand
+	message Text
+}
+
+func ParseWallopsCommand(args []string) (Command, error) {
+	if len(args) < 1 {
+		return nil, NotEnoughArgsError
+	}
+	return &WallopsCommand{
+		message: NewText(args[0]),
 	}, nil
 }
 
