@@ -23,7 +23,7 @@ func main() {
 	flag.Parse()
 
 	if version {
-		fmt.Printf("eris v%s", irc.FullVersion())
+		fmt.Printf(irc.FullVersion())
 		os.Exit(0)
 	}
 

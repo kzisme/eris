@@ -1,6 +1,9 @@
 package irc
 
 var (
+	//PackageName package name
+	Package = "eris"
+
 	// Version release version
 	Version = "1.6.0"
 
@@ -13,5 +16,5 @@ var (
 
 // FullVersion display the full version and build
 func FullVersion() string {
-	return Version + Build + " (" + GitCommit + ")"
+	return Package + " v" + Version + Build + " (" + GitCommit + ")"
 }
