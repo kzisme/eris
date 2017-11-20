@@ -77,3 +77,10 @@ func (s *SaslState) Login(authcid string) {
 
 	s.authcid = authcid
 }
+
+func (s *SaslState) Id() string {
+	s.RLock()
+	defer s.RUnlock()
+
+	return s.authcid
+}

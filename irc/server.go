@@ -455,7 +455,18 @@ func (msg *AuthenticateCommand) HandleRegServer(server *Server) {
 	}
 
 	client.sasl.Login(authcid)
+	client.RplLoggedIn(authcid)
 	client.RplSaslSuccess()
+
+	client.flags[Registered] = true
+	client.Reply(
+		RplModeChanges(
+			client, client,
+			ModeChanges{
+				&ModeChange{mode: Registered, op: Add},
+			},
+		),
+	)
 }
 
 func (msg *UserCommand) setUserInfo(server *Server) {

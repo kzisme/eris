@@ -255,6 +255,7 @@ func (target *Client) RplWhois(client *Client) {
 		target.RplWhoisSecure(client)
 	}
 	target.RplWhoisServer(client)
+	target.RplWhoisLoggedIn(client)
 	target.RplEndOfWhois()
 }
 
@@ -281,6 +282,19 @@ func (target *Client) RplWhoisIdle(client *Client) {
 	target.NumericReply(RPL_WHOISIDLE,
 		"%s %d %d :seconds idle, signon time",
 		client.Nick(), client.IdleSeconds(), client.SignonTime())
+}
+
+func (target *Client) RplWhoisLoggedIn(client *Client) {
+	if client.sasl.Id() == "" {
+		return
+	}
+
+	target.NumericReply(
+		RPL_WHOISLOGGEDIN,
+		"%s %s :Is logged in as",
+		client.Nick(),
+		client.sasl.Id(),
+	)
 }
 
 func (target *Client) RplWhoisServer(client *Client) {

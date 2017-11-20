@@ -93,6 +93,7 @@ const (
 	RPL_LISTEND           NumericCode = 323
 	RPL_CHANNELMODEIS     NumericCode = 324
 	RPL_UNIQOPIS          NumericCode = 325
+	RPL_WHOISLOGGEDIN     NumericCode = 330
 	RPL_NOTOPIC           NumericCode = 331
 	RPL_TOPIC             NumericCode = 332
 	RPL_INVITING          NumericCode = 341

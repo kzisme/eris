@@ -55,6 +55,7 @@ const (
 	Invisible  UserMode = 'i'
 	Operator   UserMode = 'o'
 	WallOps    UserMode = 'w'
+	Registered UserMode = 'r' // not a real user mode (flag)
 	SecureConn UserMode = 'z'
 	SecureOnly UserMode = 'Z'
 )
