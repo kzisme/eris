@@ -26,7 +26,12 @@ Pull requests and issues are welcome.
 
 Discussion at:
 
-* /server irc.mills.io:6697 (*use SSL*)
+* /server irc.mills.io +6697 (*use TLS/SSL*)
+* /join #lobby
+
+Or (*not recommended*)P
+
+* /server irc.mills.io (*default port 6667, non-TLS)
 * /join #lobby
 
 ## Features
@@ -61,11 +66,34 @@ $ go install github.com/prologic/mkpasswd
 $ mkpasswd
 ```
 
-## Running the server
+## Deployment
+
+To run simply run the `eris` binary (*assuming a `ircd.yml` in the current directory*):
 
 ```#!bash
 $ eris
 ```
+
+Or you can deploy with [Docker](https://www.docker.com) using the prebuilt [prologic/eris](https://hub.docker.com/r/prologic/eris/):
+
+```#!bash
+docker run -d -p 6667:6667 -p 6697:6697 prologic/eris
+```
+
+You may want to customize the configuration however and create your own image based off of this; or deploy with `docker stack deploy` on a [Docker Swarm](https://docs.docker.com/engine/swarm/) clsuter like this:
+
+```#!bash
+$ docker stack deploy -c docker-compose.yml eris
+```
+
+Which assumes a `ircd.yml` coniguration fiel int he current directory which Docker will use to distribute as the configuration. The `docker-compose.yml` (*Docker Stackfile*) is available at the root of this repository.
+
+## Related Proejcts
+
+There are a number of supported accompanying services that are being developed alongside Eris:
+
+* [Soter](https://github.com/prologic/soter) -- An IRC Bot that persists channel modes and topics.
+* [Cadmus](https://github.com/prologic/cadmus) -- An IRC Bot that logs channels and provides an interface for viewing and searching logs (*Coming soon...*)
 
 ## License
 
