@@ -16,7 +16,7 @@ server:
       cert: cert.pem
 
   # password to login to the server
-  # generated using  "ircd genpasswd"
+   # generated using  "mkpasswd" (from https://github.com/prologic/mkpasswd)
   #password: ""
 
   # motd filename
@@ -27,7 +27,7 @@ operator:
   # operator named 'admin' with password 'password'
   admin:
    # password to login with /OPER command
-   # generated using  "ircd genpasswd"
+   # generated using  "mkpasswd" (from https://github.com/prologic/mkpasswd)
    password: JDJhJDA0JE1vZmwxZC9YTXBhZ3RWT2xBbkNwZnV3R2N6VFUwQUI0RUJRVXRBRHliZVVoa0VYMnlIaGsu
 
 # accounts (SASL)
