@@ -233,6 +233,8 @@ func (client *Client) destroy() {
 		client.quitTimer.Stop()
 	}
 
+	close(client.replies)
+
 	client.socket.Close()
 
 	log.Debugf("%s: destroyed", client)
