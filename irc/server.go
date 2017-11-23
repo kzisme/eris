@@ -40,7 +40,7 @@ type Server struct {
 	description string
 	newConns    chan net.Conn
 	operators   map[Name][]byte
-	accounts    map[Name][]byte
+	accounts    PasswordStore
 	password    []byte
 	signals     chan os.Signal
 	whoWas      *WhoWasList
@@ -66,11 +66,13 @@ func NewServer(config *Config) *Server {
 		description: config.Server.Description,
 		newConns:    make(chan net.Conn),
 		operators:   config.Operators(),
-		accounts:    config.Accounts(),
+		accounts:    NewMemoryPasswordStore(config.Accounts(), PasswordStoreOpts{}),
 		signals:     make(chan os.Signal, len(SERVER_SIGNALS)),
 		whoWas:      NewWhoWasList(100),
 		ids:         make(map[string]*Identity),
 	}
+
+	log.Debugf("accounts: %v", config.Accounts())
 
 	// TODO: Make this configurabel?
 	server.ids["global"] = NewIdentity(config.Server.Name, "global")
@@ -428,17 +430,16 @@ func (msg *AuthenticateCommand) HandleRegServer(server *Server) {
 	// Do authentication
 
 	var (
-		authcid string
-		authzid string
-		passwd  string
+		authcid  string
+		authzid  string
+		password string
 	)
 
 	tokens := bytes.Split(data, []byte{'\000'})
-	log.Debugf("tokens: %v", tokens)
 	if len(tokens) == 3 {
 		authcid = string(tokens[0])
 		authzid = string(tokens[1])
-		passwd = string(tokens[2])
+		password = string(tokens[2])
 
 		if authzid == "" {
 			authzid = authcid
@@ -451,14 +452,9 @@ func (msg *AuthenticateCommand) HandleRegServer(server *Server) {
 		return
 	}
 
-	hash := server.accounts[NewName(authcid)]
-	if hash == nil {
-		client.ErrSaslFail("invalid authentication")
-		return
-	}
-	err = ComparePassword(hash, []byte(passwd))
+	err = server.accounts.Verify(authcid, password)
 	if err != nil {
-		client.ErrSaslFail("authentication failed")
+		client.ErrSaslFail("invalid authentication")
 		return
 	}
 

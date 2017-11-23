@@ -55,10 +55,10 @@ func (conf *Config) Operators() map[Name][]byte {
 	return operators
 }
 
-func (conf *Config) Accounts() map[Name][]byte {
-	accounts := make(map[Name][]byte)
-	for name, accConf := range conf.Account {
-		accounts[NewName(name)] = accConf.PasswordBytes()
+func (conf *Config) Accounts() map[string][]byte {
+	accounts := make(map[string][]byte)
+	for name, account := range conf.Account {
+		accounts[name] = []byte(account.Password)
 	}
 	return accounts
 }
