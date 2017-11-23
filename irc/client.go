@@ -57,7 +57,6 @@ func NewClient(server *Server, conn net.Conn) *Client {
 
 	if _, ok := conn.(*tls.Conn); ok {
 		client.flags[SecureConn] = true
-		client.flags[SecureOnly] = true
 	}
 
 	client.Touch()

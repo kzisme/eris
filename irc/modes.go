@@ -87,13 +87,13 @@ const (
 	Secret          ChannelMode = 's' // flag, deprecated
 	UserLimit       ChannelMode = 'l' // flag arg
 	Voice           ChannelMode = 'v' // arg
-    SecureOnly      ChannelMode = 'z' // arg
+	SecureChan      ChannelMode = 'Z' // arg
 )
 
 var (
 	SupportedChannelModes = ChannelModes{
 		BanMask, ExceptMask, InviteMask, InviteOnly, Key, NoOutside,
-		OpOnlyTopic, Private, UserLimit, SecureOnly,
+		OpOnlyTopic, Private, UserLimit, SecureChan,
 	}
 )
 
