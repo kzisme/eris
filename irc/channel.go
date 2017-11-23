@@ -244,6 +244,9 @@ func (channel *Channel) CanSpeak(client *Client) bool {
 		channel.members.HasMode(client, ChannelOperator)) {
 		return false
 	}
+    if channel.flags.Has(SecureOnly) && !client.flags[Secure]{
+        return false
+    }
 	return true
 }
 
@@ -371,7 +374,7 @@ func (channel *Channel) applyMode(client *Client, change *ChannelModeChange) boo
 		return channel.applyModeMask(client, change.mode, change.op,
 			NewName(change.arg))
 
-	case InviteOnly, Moderated, NoOutside, OpOnlyTopic, Private:
+	case InviteOnly, Moderated, NoOutside, OpOnlyTopic, Private, SecureOnly:
 		return channel.applyModeFlag(client, change.mode, change.op)
 
 	case Key:
