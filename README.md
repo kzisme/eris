@@ -47,6 +47,7 @@ Or (*not recommended*)P
 * SSL/TLS support
 * Simple IRC operator privileges (*overrides most things*)
 * Secure connection tracking (+z) and SecureOnly user mode (+Z)
+* Secure channels (+Z)
 
 ## Installation
 
