@@ -94,7 +94,7 @@ Which assumes a `ircd.yml` coniguration fiel int he current directory which Dock
 There are a number of supported accompanying services that are being developed alongside Eris:
 
 * [Soter](https://github.com/prologic/soter) -- An IRC Bot that persists channel modes and topics.
-* [Cadmus](https://github.com/prologic/cadmus) -- An IRC Bot that logs channels and provides an interface for viewing and searching logs (*Coming soon...*)
+* [Cadmus](https://github.com/prologic/cadmus) -- An IRC Bot that logs channels and provides an interface for viewing and searching logs
 
 ## License
 
