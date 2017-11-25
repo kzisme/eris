@@ -1,5 +1,11 @@
 # eris - IRC Server / Daemon written in Go
 
+[![Build Status](https://travis-ci.org/prologic/eris.svg)](https://travis-ci.org/prologic/eris)
+[![Go Report Card](https://goreportcard.com/badge/github.com/prologic/eris)](https://goreportcard.com/report/github.com/prologic/eris)
+[![Coverage](https://coveralls.io/repos/prologic/eris/badge.svg)](https://coveralls.io/r/prologic/eris)
+[![GoDoc](https://godoc.org/github.com/prologic/eris?status.svg)](https://godoc.org/github.com/prologic/eris)
+[![Wiki](https://img.shields.io/badge/docs-wiki-blue.svg)](https://github.com/prologic/eris/wiki)
+
 > This project and repository is based off of [ergonomadic](https://github.com/edmund-huber/ergonomadic)
 > and much of my original contributions were made in my [fork of ergonomadic](https://github.com/prologic/ergonomadic)
 > but the upstream project was ultimately shutdown.
