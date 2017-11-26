@@ -107,6 +107,14 @@ $ go install github.com/prologic/mkpasswd
 $ mkpasswd
 ```
 
+Self-signed certificates can also be generated using the `mksslcert` tool
+from [prologic/mksslcert](https://github.com/prologic/mksslcert):
+
+```#!bash
+$ go install github.com/prologic/mksslcert
+$ mksslcert
+```
+
 ## Deployment
 
 To run simply run the `eris` binary (*assuming a `ircd.yml` in the current directory*):
