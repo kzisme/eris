@@ -137,7 +137,7 @@ $ docker stack deploy -c docker-compose.yml eris
 
 Which assumes a `ircd.yml` coniguration file in the current directory which Docker will use to distribute as the configuration. The `docker-compose.yml` (*Docker Stackfile*) is available at the root of this repository.
 
-## Related Proejcts
+## Related Projects
 
 There are a number of supported accompanying services that are being developed alongside Eris:
 
