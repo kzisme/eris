@@ -144,6 +144,10 @@ There are a number of supported accompanying services that are being developed a
 * [Soter](https://github.com/prologic/soter) -- An IRC Bot that persists channel modes and topics.
 * [Cadmus](https://github.com/prologic/cadmus) -- An IRC Bot that logs channels and provides an interface for viewing and searching logs
 
+## Recommended Mobile clients
+
+* [Palaver (iOS)](https://palaverapp.com/) -- SASL, TLS, Server Password, Push Notifications, IRCv3 (*Also supports custom image upload service(s) for better privacy of shared photos/images over IRC*)
+
 ## License
 
 eris is licensed under the MIT License.
