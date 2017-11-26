@@ -55,6 +55,40 @@ Or (*not recommended*)P
 * Secure connection tracking (+z) and SecureOnly user mode (+Z)
 * Secure channels (+Z)
 
+## Quick Start
+
+```#!bash
+$ go get github.com/prologic/eris
+$ cat > ircd.yml <<EOF
+network:
+  name: Test
+server:
+  name: Test
+  listen:
+    - ":6667"
+EOF
+$ eris
+```
+
+If you want TLS (**recommended**) then:
+
+```#!bash
+$ go get github.com/prologic/mksslcert
+$ mksslcert
+```
+
+This generates a self-signed cert `cert.pem` and `key.pem` into the `$PWD`.
+
+Then add a `tlslisten` block to your config:
+
+```#!yaml
+server:
+  tlslisten:
+    ":6697":
+      key: key.pem
+      cert: cert.pem
+```
+
 ## Installation
 
 ```#!bash
