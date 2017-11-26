@@ -46,4 +46,4 @@ $ git push -u origin my-feature
 
 When describing your bug report; please be concise and as detailed as you can
 so we can easily work out what the problem is. It's also very helpful if you
-are able to provide a test case that repeatedly demonstrates the bug at hand:
+are able to provide a test case that repeatedly demonstrates the bug at hand.
