@@ -9,7 +9,7 @@ var (
 	Package = "eris"
 
 	// Version release version
-	Version = "1.6.2"
+	Version = "1.6.3"
 
 	// Build will be overwritten automatically by the build system
 	Build = "dev"
