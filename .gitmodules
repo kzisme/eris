@@ -43,15 +43,15 @@
 [submodule "vendor/github.com/prometheus/procfs"]
 	path = vendor/github.com/prometheus/procfs
 	url = https://github.com/prometheus/procfs
-[submodule "vendor/github.com/sasha-s/go-deadlock"]
-	path = vendor/github.com/sasha-s/go-deadlock
-	url = https://github.com/sasha-s/go-deadlock
-[submodule "vendor/github.com/petermattis/goid"]
-	path = vendor/github.com/petermattis/goid
-	url = https://github.com/petermattis/goid
 [submodule "vendor/github.com/thoj/go-ircevent"]
 	path = vendor/github.com/thoj/go-ircevent
 	url = https://github.com/thoj/go-ircevent
 [submodule "vendor/github.com/stretchr/testify"]
 	path = vendor/github.com/stretchr/testify
 	url = https://github.com/stretchr/testify
+[submodule "vendor/github.com/renstrom/shortuuid"]
+	path = vendor/github.com/renstrom/shortuuid
+	url = https://github.com/renstrom/shortuuid
+[submodule "vendor/github.com/satori/go.uuid"]
+	path = vendor/github.com/satori/go.uuid
+	url = https://github.com/satori/go.uuid
