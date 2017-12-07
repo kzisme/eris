@@ -96,13 +96,8 @@ func TestMain(m *testing.M) {
 func TestConnection(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected bool
-		actual   chan bool
-	)
-
-	expected = true
-	actual = make(chan bool)
+	expected := true
+	actual := make(chan bool)
 
 	client := newClient(false)
 
@@ -149,13 +144,8 @@ func TestSASL(t *testing.T) {
 func TestRplWelcome(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected string
-		actual   chan string
-	)
-
-	expected = "Welcome to the .* Internet Relay Network .*!.*@.*"
-	actual = make(chan string)
+	expected := "Welcome to the .* Internet Relay Network .*!.*@.*"
+	actual := make(chan string)
 
 	client := newClient(false)
 
@@ -177,18 +167,11 @@ func TestRplWelcome(t *testing.T) {
 func TestUser_JOIN(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected []string
-		actual   chan string
-	)
+	client := newClient(false)
 
-	actual = make(chan string)
+	expected := []string{client.GetNick(), "=", "#join", fmt.Sprintf("@%s", client.GetNick())}
+	actual := make(chan string)
 
-	client := newClient(true)
-
-	client.AddCallback("001", func(e *irc.Event) {
-		expected = []string{e.Arguments[0], "=", "#join", fmt.Sprintf("@%s", e.Arguments[0])}
-	})
 	client.AddCallback("353", func(e *irc.Event) {
 		for i := range e.Arguments {
 			actual <- e.Arguments[i]
@@ -196,6 +179,7 @@ func TestUser_JOIN(t *testing.T) {
 	})
 
 	defer client.Quit()
+	go client.Loop()
 
 	client.Join("#join")
 	client.SendRaw("NAMES #join")
@@ -213,16 +197,11 @@ func TestUser_JOIN(t *testing.T) {
 func TestChannel_InviteOnly(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected bool
-		actual   chan bool
-	)
+	expected := true
+	actual := make(chan bool)
 
-	expected = true
-	actual = make(chan bool)
-
-	client1 := newClient(true)
-	client2 := newClient(true)
+	client1 := newClient(false)
+	client2 := newClient(false)
 
 	client1.AddCallback("324", func(e *irc.Event) {
 		if strings.Contains(e.Arguments[2], "i") {
@@ -241,6 +220,8 @@ func TestChannel_InviteOnly(t *testing.T) {
 
 	defer client1.Quit()
 	defer client2.Quit()
+	go client1.Loop()
+	go client2.Loop()
 
 	client1.Join("#inviteonly")
 	client1.Mode("#inviteonly", "+i")
@@ -257,16 +238,11 @@ func TestChannel_InviteOnly(t *testing.T) {
 func TestUser_PRIVMSG(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected string
-		actual   chan string
-	)
+	expected := "Hello World!"
+	actual := make(chan string)
 
-	expected = "Hello World!"
-	actual = make(chan string)
-
-	client1 := newClient(true)
-	client2 := newClient(true)
+	client1 := newClient(false)
+	client2 := newClient(false)
 
 	client1.AddCallback("001", func(e *irc.Event) {
 		client1.Privmsg(client2.GetNick(), expected)
@@ -285,6 +261,8 @@ func TestUser_PRIVMSG(t *testing.T) {
 
 	defer client1.Quit()
 	defer client2.Quit()
+	go client1.Loop()
+	go client2.Loop()
 
 	select {
 	case res := <-actual:
@@ -297,16 +275,11 @@ func TestUser_PRIVMSG(t *testing.T) {
 func TestChannel_PRIVMSG(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected string
-		actual   chan string
-	)
+	expected := "Hello World!"
+	actual := make(chan string)
 
-	expected = "Hello World!"
-	actual = make(chan string)
-
-	client1 := newClient(true)
-	client2 := newClient(true)
+	client1 := newClient(false)
+	client2 := newClient(false)
 
 	client1.AddCallback("JOIN", func(e *irc.Event) {
 		client1.Privmsg(e.Arguments[0], expected)
@@ -324,6 +297,8 @@ func TestChannel_PRIVMSG(t *testing.T) {
 
 	defer client1.Quit()
 	defer client2.Quit()
+	go client1.Loop()
+	go client2.Loop()
 
 	client1.Join("#channelprivmsg")
 	client2.Join("#channelprivmsg")
@@ -339,13 +314,8 @@ func TestChannel_PRIVMSG(t *testing.T) {
 func TestChannel_NoExternal(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected bool
-		actual   chan bool
-	)
-
-	expected = true
-	actual = make(chan bool)
+	expected := true
+	actual := make(chan bool)
 
 	client1 := newClient(true)
 	client2 := newClient(true)
@@ -374,6 +344,8 @@ func TestChannel_NoExternal(t *testing.T) {
 
 	defer client1.Quit()
 	defer client2.Quit()
+	go client1.Loop()
+	go client2.Loop()
 
 	client1.Join("#noexternal")
 
@@ -391,12 +363,14 @@ func TestChannel_SetTopic_InvalidChannel(t *testing.T) {
 	expected := true
 	actual := make(chan bool)
 
-	client1 := newClient(true)
-	defer client1.Quit()
+	client1 := newClient(false)
 
 	client1.AddCallback("403", func(e *irc.Event) {
 		actual <- true
 	})
+
+	defer client1.Quit()
+	go client1.Loop()
 
 	client1.SendRaw("TOPIC #invalidchannel :FooBar")
 
@@ -414,10 +388,8 @@ func TestChannel_SetTopic_NotOnChannel(t *testing.T) {
 	expected := true
 	actual := make(chan bool)
 
-	client1 := newClient(true)
-	client2 := newClient(true)
-	defer client1.Quit()
-	defer client2.Quit()
+	client1 := newClient(false)
+	client2 := newClient(false)
 
 	client1.AddCallback("442", func(e *irc.Event) {
 		actual <- true
@@ -425,6 +397,9 @@ func TestChannel_SetTopic_NotOnChannel(t *testing.T) {
 	client2.AddCallback("JOIN", func(e *irc.Event) {
 		client1.SendRaw("TOPIC #notonchannel :FooBar")
 	})
+
+	defer client1.Quit()
+	go client1.Loop()
 
 	client2.Join("#notonchannel")
 
@@ -439,16 +414,11 @@ func TestChannel_SetTopic_NotOnChannel(t *testing.T) {
 func TestChannel_BadChannelKey(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected bool
-		actual   chan bool
-	)
+	expected := true
+	actual := make(chan bool)
 
-	expected = true
-	actual = make(chan bool)
-
-	client1 := newClient(true)
-	client2 := newClient(true)
+	client1 := newClient(false)
+	client2 := newClient(false)
 
 	client1.AddCallback("324", func(e *irc.Event) {
 		if strings.Contains(e.Arguments[2], "k") {
@@ -469,6 +439,8 @@ func TestChannel_BadChannelKey(t *testing.T) {
 
 	defer client1.Quit()
 	defer client2.Quit()
+	go client1.Loop()
+	go client2.Loop()
 
 	client1.Join("#badchannelkey")
 	client1.Mode("#badchannelkey", "+k", "opensesame")
@@ -485,13 +457,8 @@ func TestChannel_BadChannelKey(t *testing.T) {
 func TestChannel_GoodChannelKey(t *testing.T) {
 	assert := assert.New(t)
 
-	var (
-		expected bool
-		actual   chan bool
-	)
-
-	expected = true
-	actual = make(chan bool)
+	expected := true
+	actual := make(chan bool)
 
 	client1 := newClient(true)
 	client2 := newClient(true)
@@ -515,6 +482,8 @@ func TestChannel_GoodChannelKey(t *testing.T) {
 
 	defer client1.Quit()
 	defer client2.Quit()
+	go client1.Loop()
+	go client2.Loop()
 
 	client1.Join("#goodchannelkey")
 	client1.Mode("#goodchannelkey", "+k", "opensesame")
