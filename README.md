@@ -1,4 +1,4 @@
-# eris - IRC Server / Daemon written in Go
+:set spell eris - IRC Server / Daemon written in Go
 
 [![Build Status](https://travis-ci.org/prologic/eris.svg)](https://travis-ci.org/prologic/eris)
 [![Go Report Card](https://goreportcard.com/badge/github.com/prologic/eris)](https://goreportcard.com/report/github.com/prologic/eris)
@@ -25,7 +25,7 @@ The connotation here is that IRC (*Internet Relay Chat*) is a place of chaos,
 strife and discord. IRC is a place where you argue and get into arguments for
 the sake of argument.
 
-So `eris` is an IRC daemon written from scratch in Go to factiliate discord
+So `eris` is an IRC daemon written from scratch in Go to facilitate discord
 and have arguments for the sake of argument!
 
 Pull requests and issues are welcome.
