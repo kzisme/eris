@@ -58,11 +58,12 @@ const (
 	Registered UserMode = 'r' // not a real user mode (flag)
 	SecureConn UserMode = 'z'
 	SecureOnly UserMode = 'Z'
+    HostMask   UserMode = 'x'
 )
 
 var (
 	SupportedUserModes = UserModes{
-		Invisible, Operator,
+		Invisible, Operator, HostMask,
 	}
 	DefaultChannelModes = ChannelModes{
 		NoOutside, OpOnlyTopic,
