@@ -58,7 +58,7 @@ const (
 	Registered UserMode = 'r' // not a real user mode (flag)
 	SecureConn UserMode = 'z'
 	SecureOnly UserMode = 'Z'
-    HostMask   UserMode = 'x'
+	HostMask   UserMode = 'x'
 )
 
 var (
@@ -117,7 +117,7 @@ func (m *ModeCommand) HandleServer(s *Server) {
 
 	for _, change := range m.changes {
 		switch change.mode {
-		case Invisible, WallOps, SecureOnly:
+		case Invisible, HostMask, WallOps, SecureOnly:
 			switch change.op {
 			case Add:
 				if target.flags[change.mode] {
