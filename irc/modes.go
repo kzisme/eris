@@ -58,7 +58,7 @@ const (
 	Registered UserMode = 'r' // not a real user mode (flag)
 	SecureConn UserMode = 'z'
 	SecureOnly UserMode = 'Z'
-    HostMask   UserMode = 'x'
+	HostMask   UserMode = 'x'
 )
 
 var (
