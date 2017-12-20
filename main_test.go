@@ -235,19 +235,28 @@ func TestChannel_InviteOnly(t *testing.T) {
 	}
 }
 
-func TestUser_HostMask(t *testing.T){
-    assert := assert.New(t)
+func TestUser_HostMask(t *testing.T) {
+	assert := assert.New(t)
 
 	client := newClient(false)
 
-	expected := []string{client.GetNick(), "=", "#join", fmt.Sprintf("@%s", client.GetNick())}
+	expected := client.GetNick() + " sets mode to +x"
 	actual := make(chan string)
 
-    client.AddCallback("221", func(e *irc.Event){
-        client.Mode(client.GetNick(), "MODE +x" + client.GetNick())
-    })
-    
-    defer client.Quit()
+	client.AddCallback("001", func(e *irc.Event) {
+		client.Mode(client.GetNick(), "MODE +x"+client.GetNick())
+	})
+
+	client.AddCallback("MODE", func(e *irc.Event) {
+		actual <- e.Message()
+	})
+
+	defer client.Quit()
+
+	select {
+	case res := <-actual:
+		assert.Equal(expected, res)
+	}
 }
 
 func TestUser_PRIVMSG(t *testing.T) {
