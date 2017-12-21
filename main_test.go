@@ -262,6 +262,33 @@ func TestUser_HostMask(t *testing.T) {
 	}
 }
 
+func TestUser_RmHostMask(t *testing.T) {
+	assert := assert.New(t)
+
+	client := newClient(false)
+
+	expected := "-x"
+	actual := make(chan string)
+
+	client.AddCallback("001", func(e *irc.Event) {
+		client.Mode(client.GetNick(), "-x")
+	})
+
+	client.AddCallback("MODE", func(*irc.Event) {
+		actual <- e.Message()
+	})
+
+	defer client.Quit()
+	go client.Loop()
+
+	select {
+	case res := <-actual:
+		assert.Equal(expected, res)
+	case <-time.After(TIMEOUT):
+		assert.Fail("timeout")
+	}
+}
+
 func TestUser_PRIVMSG(t *testing.T) {
 	assert := assert.New(t)
 
