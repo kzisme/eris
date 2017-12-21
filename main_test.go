@@ -240,7 +240,7 @@ func TestUser_HostMask(t *testing.T) {
 
 	client := newClient(false)
 
-	expected := client.GetNick() + " sets mode to +x"
+	expected := "+x"
 	actual := make(chan string)
 
 	client.AddCallback("001", func(e *irc.Event) {
