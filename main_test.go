@@ -244,7 +244,7 @@ func TestUser_HostMask(t *testing.T) {
 	actual := make(chan string)
 
 	client.AddCallback("001", func(e *irc.Event) {
-		client.Mode(client.GetNick(), "MODE +x"+client.GetNick())
+		client.Mode(client.GetNick(), "+x")
 	})
 
 	client.AddCallback("MODE", func(e *irc.Event) {
@@ -252,10 +252,13 @@ func TestUser_HostMask(t *testing.T) {
 	})
 
 	defer client.Quit()
+	go client.Loop()
 
 	select {
 	case res := <-actual:
 		assert.Equal(expected, res)
+	case <-time.After(TIMEOUT):
+		assert.Fail("timeout")
 	}
 }
 
