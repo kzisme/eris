@@ -274,7 +274,7 @@ func TestUser_RmHostMask(t *testing.T) {
 		client.Mode(client.GetNick(), "-x")
 	})
 
-	client.AddCallback("MODE", func(*irc.Event) {
+	client.AddCallback("MODE", func(e *irc.Event) {
 		actual <- e.Message()
 	})
 
