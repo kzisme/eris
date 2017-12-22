@@ -218,7 +218,7 @@ func (client *Client) Register() {
 		return
 	}
 	client.registered = true
-	client.Flags[HostMask]
+	client.flags[HostMask]
 	client.Touch()
 }
 
