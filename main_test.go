@@ -238,21 +238,24 @@ func TestChannel_InviteOnly(t *testing.T) {
 func TestUser_HostMask(t *testing.T) {
 	assert := assert.New(t)
 
-	client := newClient(false)
+	client1 := newClient(false)
+	client2 := newClient(false)
 
 	expected := "+x"
 	actual := make(chan string)
 
-	client.AddCallback("001", func(e *irc.Event) {
-		client.Mode(client.GetNick(), "+x")
+	client1.AddCallback("001", func(e *irc.Event) {
+		client.Whois(client2)
 	})
 
-	client.AddCallback("MODE", func(e *irc.Event) {
+	client.AddCallback("WHOIS", func(e *irc.Event) {
 		actual <- e.Message()
 	})
 
-	defer client.Quit()
-	go client.Loop()
+	defer client1.Quit()
+	defer client2.Quit()
+	go client1.Loop()
+	go client2.Loop()
 
 	select {
 	case res := <-actual:
