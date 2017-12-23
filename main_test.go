@@ -239,23 +239,27 @@ func TestUser_HostMask(t *testing.T) {
 	assert := assert.New(t)
 
 	client1 := newClient(false)
-	//client2 := newClient(false)
+	client2 := newClient(false)
 
 	expected := "Test Client: o33oaeZfvANWebjfjN5heD"
 	actual := make(chan string)
 
 	client1.AddCallback("001", func(e *irc.Event) {
-		client1.Whois(client1.GetNick())
+		client1.Who(client2.GetNick())
 	})
 
 	client1.AddCallback("311", func(e *irc.Event) {
 		actual <- e.Message()
 	})
 
+	client2.AddCallback("311", func(e *irc.Event) {
+		actual <- e.Message()
+	})
+
 	defer client1.Quit()
-	//defer client2.Quit()
+	defer client2.Quit()
 	go client1.Loop()
-	//go client2.Loop()
+	go client2.Loop()
 
 	select {
 	case res := <-actual:
