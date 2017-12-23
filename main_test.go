@@ -245,7 +245,7 @@ func TestUser_HostMask(t *testing.T) {
 	actual := make(chan string)
 
 	client1.AddCallback("001", func(e *irc.Event) {
-		client1.Who(client2.GetNick())
+		client1.Whois(client2.GetNick())
 	})
 
 	client1.AddCallback("311", func(e *irc.Event) {
