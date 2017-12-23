@@ -241,7 +241,7 @@ func TestUser_HostMask(t *testing.T) {
 	client1 := newClient(false)
 	//client2 := newClient(false)
 
-	expected := "+x"
+	expected := "Test Client:" + NewName(SHA256(client1.hostname.String()))
 	actual := make(chan string)
 
 	client1.AddCallback("001", func(e *irc.Event) {
