@@ -241,16 +241,16 @@ func TestUser_HostMask(t *testing.T) {
 	client1 := newClient(false)
 	client2 := newClient(false)
 
-	expected := "Test Client: o33oaeZfvANWebjfjN5heD"
+	expected := "Test Client: oqyvWZtCz84HHeeC98G5AD"
 	actual := make(chan string)
 
 	client1.AddCallback("001", func(e *irc.Event) {
 		client1.Whois(client2.GetNick())
 	})
 
-	client1.AddCallback("311", func(e *irc.Event) {
-		actual <- e.Message()
-	})
+	//client1.AddCallback("311", func(e *irc.Event) {
+	//	actual <- e.Message()
+	//	})
 
 	client2.AddCallback("311", func(e *irc.Event) {
 		actual <- e.Message()
