@@ -236,17 +236,17 @@ func TestChannel_InviteOnly(t *testing.T) {
 	}
 }
 
-func TestUser_WithoutHostMask(t *testing.T) {
+func TestUser_WithHostMask(t *testing.T) {
 	assert := assert.New(t)
 
 	client1 := newClient(false)
 	client2 := newClient(false)
 
-	expected := "localhost"
+	expected := fmt.Sprintf("%x", sha256.Sum256([]byte("localhost")))
 	actual := make(chan string)
 
 	client1.AddCallback("001", func(e *irc.Event) {
-		client1.Mode(client1.GetNick(), "-x")
+		client1.Mode(client1.GetNick(), "+x")
 	})
 
 	client2.AddCallback("001", func(e *irc.Event) {
@@ -274,17 +274,17 @@ func TestUser_WithoutHostMask(t *testing.T) {
 	}
 }
 
-func TestUser_WithHostMask(t *testing.T) {
+func TestUser_WithoutHostMask(t *testing.T) {
 	assert := assert.New(t)
 
 	client1 := newClient(false)
 	client2 := newClient(false)
 
-	expected := fmt.Sprintf("%x", sha256.Sum256([]byte("localhost")))
+	expected := "localhost"
 	actual := make(chan string)
 
 	client1.AddCallback("001", func(e *irc.Event) {
-		client1.Mode(client1.GetNick(), "+x")
+		client1.Mode(client1.GetNick(), "-x+")
 	})
 
 	client2.AddCallback("001", func(e *irc.Event) {
@@ -299,6 +299,7 @@ func TestUser_WithHostMask(t *testing.T) {
 		actual <- e.Arguments[3]
 	})
 
+	defer client1.Quit()
 	defer client2.Quit()
 	go client1.Loop()
 	go client2.Loop()
